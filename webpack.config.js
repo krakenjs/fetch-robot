@@ -56,6 +56,7 @@ function getWebpackConfig({ filename, modulename, minify = false, options = {}, 
             }),
             new webpack.DefinePlugin({
                 __TEST__: false,
+                __IE_POPUP_SUPPORT__: false,
                 ...vars
             }),
             new webpack.NamedModulesPlugin(),

@@ -1,0 +1,11 @@
+
+<body>
+    <script>
+        window.mockDomain = 'mock://www.third-party-site.com';
+        var parentWindow = (window.opener || window.parent);
+        window.__coverage__ = parentWindow.__coverage__;
+    </script>
+
+    <script src="/base/node_modules/babel-polyfill/dist/polyfill.js"></script>
+    <script src="./index.js"></script>
+</body>

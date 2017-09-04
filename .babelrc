@@ -2,9 +2,10 @@
     "presets": [
         [ "es2015", { "modules": false } ]
     ],
-    
+
     "plugins": [
         [ "transform-flow-strip-types", { "loose": true } ],
+        [ "transform-class-properties", { "loose": true } ],
         [ "transform-object-rest-spread", { "loose": true } ],
         [ "syntax-object-rest-spread", { "loose": true } ],
         [ "transform-es3-property-literals", { "loose": true } ],
@@ -15,7 +16,6 @@
     "env": {
         "test": {
             "plugins": [
-                [ "flow-runtime", { "assert": true, "annotate": true } ],
                 [ "istanbul", { "only": "./src" } ]
             ]
         }

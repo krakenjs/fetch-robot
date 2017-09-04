@@ -26,6 +26,12 @@ module.exports = function(config) {
             },
 
             {
+                pattern: 'test/windows/**/*',
+                included: false,
+                served: true
+            },
+
+            {
                 pattern: 'test/test.js',
                 included: true,
                 served: true
@@ -35,7 +41,8 @@ module.exports = function(config) {
         preprocessors: {
             'test/test.js':         [ 'webpack',  'sourcemap' ],
             'test/windows/**/*.js': [ 'webpack',  'sourcemap' ],
-            'src/**/*.js':          [ 'coverage', 'sourcemap' ]
+            'src/**/*.js':          [ 'coverage', 'sourcemap' ],
+            'test/windows/**/*.js': [ 'webpack',  'sourcemap' ],
         },
 
         customLaunchers: {
