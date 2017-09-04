@@ -1,0 +1,27 @@
+// @flow
+
+declare class Class0 {
+  static error(): Class0;
+  static redirect(url: string, status?: number): Class0;
+
+  body: ?ReadableStream;
+  bodyUsed: boolean;
+  headers: Headers;
+  ok: boolean;
+  redirected: boolean;
+  status: number;
+  statusText: string;
+  trailer: Promise<Headers>;
+  type: "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect";
+  url: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  blob(): Promise<Blob>;
+  clone(): Class0;
+  constructor(input?: ?string | URLSearchParams | FormData | Blob | ArrayBuffer | $TypedArray | DataView, init?: {headers?: Headers | {[key: string]: string}, status?: number, statusText?: string}): void;
+  formData(): Promise<FormData>;
+  json(): Promise<any>;
+  text(): Promise<string>;
+}
+declare export function connect(_: $Exact<{url: string}>): $Exact<{fetch: (url: string, options: $Exact<{method: string}>) => any}>;
+declare export function destroyAll<Class0>(): void;
+declare export function serve(_?: $Exact<{allow: Array<$Exact<{}>>}>): {cancel: () => void};

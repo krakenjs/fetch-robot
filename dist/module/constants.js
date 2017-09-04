@@ -1,0 +1,1 @@
+export var FETCH_PROXY = 'fetch-robot-proxy';
