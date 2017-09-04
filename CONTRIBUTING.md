@@ -1,4 +1,4 @@
-# Contributing to mylibrary
+# Contributing to fetch-robot
 
 We are always looking for ways to make our modules better. Adding features and fixing bugs allows everyone who depends
 on this code to create better, more stable applications.
@@ -9,13 +9,13 @@ your changes into our code. Ideas and other comments are also welcome.
 1. Create your own [fork](https://help.github.com/articles/fork-a-repo) of this [repository](../../fork).
 ```bash
 # Clone it
-$ git clone git@github.com:me/mylibrary.git
+$ git clone git@github.com:krakenjs/fetch-robot.git
 
 # Change directory
-$ cd mylibrary
+$ cd fetch-robot
 
 # Add the upstream repo
-$ git remote add upstream git://github.com/krakenjs/mylibrary.git
+$ git remote add upstream git://github.com/krakenjs/fetch-robot.git
 
 # Get the latest upstream changes
 $ git pull upstream

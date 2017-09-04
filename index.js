@@ -1,2 +1,2 @@
 
-module.exports = require('./dist/mylibrary');
+module.exports = require('./dist/fetch-robot');

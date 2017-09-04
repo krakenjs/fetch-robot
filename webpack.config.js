@@ -3,8 +3,8 @@ let webpack = require('webpack');
 let UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 let CircularDependencyPlugin = require('circular-dependency-plugin');
 
-const FILE_NAME = 'mylibrary';
-const MODULE_NAME = 'mylibrary';
+const FILE_NAME = 'fetch-robot';
+const MODULE_NAME = 'fetchRobot';
 
 function getWebpackConfig({ filename, modulename, minify = false, options = {}, vars = {} }) {
 
