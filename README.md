@@ -3,6 +3,15 @@ Fetch Robot
 
 Run `fetch()` through an iframe proxy to avoid dealing with CORS.
 
+Uses [post-robot](https://github.com/krakenjs/post-robot) for frame-to-frame communication.
+
+### Why?
+
+- CORS requires server-side changes on each endpoint
+- For non-GET requests, preflight requests must be sent to verify the origin, which affects site-speed
+- Support is limited in older browsers
+- CORS headers only allow a certain degree of granularity
+
 Example
 -------
 
@@ -14,38 +23,82 @@ Let's say:
 In the parent window `rorschach.com`:
 
 ```javascript
-// Create a proxy instance and open the iframe
+<script>
+    // Create a proxy instance and open the iframe
 
-let proxy = fetchRobot.connect({ url: 'https://www.niteowl.com/fetch-robot-proxy' });
+    let proxy = fetchRobot.connect({ url: 'https://www.niteowl.com/fetch-robot-proxy' });
 
-// Use `proxy.fetch` as if it were
+    // Use `proxy.fetch` as if it were
 
-proxy.fetch('https://www.niteowl.com/api/foo', { method: 'POST' })
-    .then(response => response.text())
-    .then(console.log);
- ```
+    proxy.fetch('https://www.niteowl.com/api/foo', { method: 'POST' })
+        .then(response => response.text())
+        .then(console.log);
+</script>
+```
 
 In the child window `niteowl.com/fetch-robot-proxy`:
 
 ```javascript
-// Enable requests to be passed through the current frame
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
 
-fetchRobot.serve({
+<script>
+    // Enable requests to be passed through the current frame
 
-    allow: [
-        {
-            paths: [
-                '/api/foo',
-                '/api/bar'
-            ],
+    fetchRobot.serve({
 
-            headers: [
-                'x-csrf'
-            ]
-        }
-    ]
-});
+        allow: [
+            {
+                path: [
+                    '/api/foo',
+                    '/api/bar'
+                ],
+
+                headers: [
+                    'x-csrf'
+                ]
+            },
+
+            {
+                origin: 'https://some-domain.com',
+
+                path: [
+                    '/api/baz',
+                ],
+
+                headers: [
+                    'x-custom-header'
+                ]
+            }
+        ]
+    });
+</script>
 ```
+
+Rules
+-----
+
+Pass one or more rules in `allow`.
+
+- If any of the rules pass for a given request, the request will be allowed through.
+- If no rules pass, the request will error out
+
+Each option in a rule can be one of:
+
+- string (e.g. `origin: 'https://foo.com'`)
+- array (e.g. `origin: [ 'https://foo.com', 'https://bar.com' ]`)
+- regex (e.g. `origin: new RegExp('https://(foo|bar)\.com')`)
+- wildcard (e.g. `origin: '*'`)
+
+### Available options
+
+- `origin` - The domain(s) from which the request was sent
+  - default: `*`
+- `domain` - The domain(s) to which the request can be sent
+  - default: domain where `fetchRobot.serve()` was called
+- `path` - The path(s) to which requests can be sent
+- `query` - The query param(s) which can be sent with the request
+- `headers` - The headers(s) which can be sent with the request
+- `responseHeaders` - The header(s) which can be sent with the response
 
 Quick Start
 -----------
