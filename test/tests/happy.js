@@ -105,6 +105,56 @@ describe('happy cases', () => {
         });
     });
 
+    it('should make a request with an uppercase method and text response, and return the correct response', () => {
+
+        let url = '/api/foo';
+        let method = 'GET';
+        let text = 'ok';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = (fetchUrl, fetchOptions) => {
+                if (fetchUrl !== url) {
+                    throw new Error(`Expected ${ fetchUrl } to be ${ url }`);
+                }
+
+                if (fetchOptions.method.toLowerCase() !== method.toLowerCase()) {
+                    throw new Error(`Expected ${ fetchOptions.method.toLowerCase() } to be ${ method.toLowerCase() }`);
+                }
+
+                return ZalgoPromise.resolve(new Response(text));
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(url, { method });
+
+        }).then(response => {
+
+            if (!(response instanceof window.Response)) {
+                throw new TypeError(`Expected response to be instance of Response`);
+            }
+
+            return response.text();
+
+        }).then(responseText => {
+
+            if (responseText !== text) {
+                throw new Error(`Expected ${ responseText } to be ${ text }`);
+            }
+        });
+    });
+
     it('should make a request with a custom domain and text response, and return the correct response', () => {
 
         let domain = 'mock://www.another-site.com';
