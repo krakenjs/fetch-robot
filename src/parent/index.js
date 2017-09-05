@@ -2,5 +2,5 @@
 
 export * from './proxy';
 export * from './fetch';
-export * from './deserialize';
+export * from './serdes';
 export * from './frame';

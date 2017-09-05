@@ -1,4 +1,4 @@
 /* @flow */
 
 export * from './server';
-export * from './serialize';
+export * from './serdes';

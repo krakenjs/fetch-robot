@@ -4,7 +4,7 @@ import { on } from 'post-robot/src';
 
 import { FETCH_PROXY } from '../constants';
 
-import { serializeResponse } from './serialize';
+import { deserializeRequest, serializeResponse } from './serdes';
 
 type ServeOptions = {|
     allow : Array<{|
@@ -19,7 +19,7 @@ export function serve({ allow = [] } : ServeOptions = {}) : CancelableType {
     }
 
     let listener = on(FETCH_PROXY, {}, ({ data: { url, options } }) => {
-        return window.fetch(url, options)
+        return window.fetch(url, deserializeRequest(options))
             .then(response => serializeResponse(response));
     });
 

@@ -14,23 +14,34 @@ export type CrossDomainWindowType = {|
 |};
 
 export type FetchOptionsType = {|
-    method : string
+    method? : ?string,
+    headers? : ?Headers,
+    body? : ?(string | Blob | BufferSource | FormData | URLSearchParams | USVString),
+    mode? : ?string,
+    credentials? : ?string,
+    cache? : ?string,
+    redirect? : ?string,
+    referrer? : ?string,
+    integrity? : ?string
+|};
+
+export type SerializedRequestType = {|
+    method? : ?string,
+    headers? : ?{ [string] : string },
+    body? : ?string,
+    mode? : ?string,
+    credentials? : ?string,
+    cache? : ?string,
+    redirect? : ?string,
+    referrer? : ?string,
+    integrity? : ?string
 |};
 
 export type SerializedResponseType = {|
-    ok : boolean,
-    redirected : boolean,
     status : number,
     statusText : string,
-    type : string,
-    url : string,
-    bodyUsed : boolean,
-
     headers : { [string] : string },
-    text : () => ZalgoPromise<text>,
-    json : () => ZalgoPromise<mixed>,
-
-    clone : () => SerializedResponseType
+    text : () => ZalgoPromise<text>
 |};
 
 export type CancelableType = {
