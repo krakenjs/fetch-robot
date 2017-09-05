@@ -47,3 +47,16 @@ export type SerializedResponseType = {|
 export type CancelableType = {
     cancel : () => void
 };
+
+export type StringMatcherType = string | RegExp | Array<string>;
+
+export type AllowRuleType = {
+    origin? : ?StringMatcherType,
+    domain? : ?StringMatcherType,
+    method? : ?StringMatcherType,
+    path? : ?StringMatcherType,
+    headers? : ?StringMatcherType,
+    query? : ?StringMatcherType,
+    options? : ?StringMatcherType,
+    responseHeaders? : ?StringMatcherType
+};

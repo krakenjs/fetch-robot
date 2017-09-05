@@ -1,9 +1,10 @@
 /* @flow */
+/* eslint max-lines: 0 */
 
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { once } from 'post-robot/src';
 
-import { connect } from '../../src';
+import { connect, STANDARD_RESPONSE_HEADERS } from '../../src';
 
 const FRAME_URL = `${ window.location.protocol }//${ window.location.host }/base/test/windows/frame/index.htm`;
 
@@ -28,7 +29,11 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {
@@ -74,11 +79,63 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {
             return proxy.fetch(url, { method });
+
+        }).then(response => {
+
+            if (!(response instanceof window.Response)) {
+                throw new TypeError(`Expected response to be instance of Response`);
+            }
+
+            return response.text();
+
+        }).then(responseText => {
+
+            if (responseText !== text) {
+                throw new Error(`Expected ${ responseText } to be ${ text }`);
+            }
+        });
+    });
+
+    it('should make a request with a custom domain and text response, and return the correct response', () => {
+
+        let domain = 'mock://www.another-site.com';
+        let path = '/api/foo';
+        let text = 'ok';
+        let url = `${ domain }${ path }`;
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = (fetchUrl) => {
+                if (fetchUrl !== url) {
+                    throw new Error(`Expected ${ fetchUrl } to be ${ url }`);
+                }
+
+                return ZalgoPromise.resolve(new Response(text));
+            };
+
+            return serve({
+                allow: [
+                    {
+                        domain,
+                        path: [ path ]
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(url);
 
         }).then(response => {
 
@@ -120,7 +177,11 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {
@@ -166,7 +227,11 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {
@@ -214,7 +279,11 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {
@@ -281,7 +350,12 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path:    [ url ],
+                        headers: Object.keys(requestHeaders)
+                    }
+                ]
             });
 
         }).then(() => {
@@ -336,14 +410,16 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path:            [ url ],
+                        responseHeaders: STANDARD_RESPONSE_HEADERS.concat(Object.keys(responseHeaders))
+                    }
+                ]
             });
 
         }).then(() => {
-            return proxy.fetch(url, {
-                method,
-                headers: new Headers(responseHeaders)
-            });
+            return proxy.fetch(url, { method });
 
         }).then(response => {
 
@@ -408,7 +484,11 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {
@@ -456,7 +536,11 @@ describe('happy cases', () => {
             };
 
             return serve({
-                allow: []
+                allow: [
+                    {
+                        path: [ url ]
+                    }
+                ]
             });
 
         }).then(() => {

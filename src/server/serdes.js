@@ -1,11 +1,12 @@
 /* @flow */
 
-import { serializeHeaders, deserializeHeaders, REQUEST_OPTIONS } from '../serdes';
+import { STANDARD_REQUEST_OPTIONS } from '../constants';
+import { serializeHeaders, deserializeHeaders } from '../serdes';
 import { extractKeys } from '../util';
 
 export function deserializeRequest(options : SerializedRequestType) : FetchOptionsType {
 
-    let result = extractKeys(options, REQUEST_OPTIONS);
+    let result = extractKeys(options, STANDARD_REQUEST_OPTIONS);
 
     if (options && options.headers) {
         result.headers = deserializeHeaders(options.headers);

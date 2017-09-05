@@ -1,10 +1,5 @@
 /* @flow */
 
-export const REQUEST_OPTIONS = [
-    'method', 'body', 'mode', 'credentials', 'cache',
-    'redirect', 'referrer', 'integrity'
-];
-
 export function serializeHeaders(headers : ?Headers) : { [string] : string } {
     let result = {};
 
@@ -13,7 +8,7 @@ export function serializeHeaders(headers : ?Headers) : { [string] : string } {
     }
 
     for (let key of Array.from(headers.keys())) {
-        result[key] = headers.get(key);
+        result[key.toLowerCase()] = headers.get(key);
     }
 
     return result;

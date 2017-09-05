@@ -15,3 +15,7 @@ export function extractKeys(obj : ?Object, keys : Array<string>) : Object {
 
     return result;
 }
+
+export function isRegex(item : mixed) : boolean {
+    return Object.prototype.toString.call(item) === '[object RegExp]';
+}

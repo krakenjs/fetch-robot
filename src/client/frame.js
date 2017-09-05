@@ -27,7 +27,7 @@ export function getFrame(url : string) : HTMLIFrameElement {
     return frames[domain];
 }
 
-export function destroyAll() {
+export function destroyFrames() {
     for (let domain of Object.keys(frames)) {
         let frame = frames[domain];
         frame.parentNode.removeChild(frame);

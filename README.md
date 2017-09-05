@@ -34,8 +34,6 @@ fetchRobot.serve({
 
     allow: [
         {
-            origin: '*',
-
             paths: [
                 '/api/foo',
                 '/api/bar'
