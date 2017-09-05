@@ -621,6 +621,8 @@ describe('rule cases', () => {
     it('should make a request with an allowed default header in the response', () => {
 
         let path = '/api/foo';
+        let header = 'pragma';
+        let value = 'nocache';
 
         let proxy = connect({ url: FRAME_URL });
 
@@ -630,7 +632,7 @@ describe('rule cases', () => {
             source.fetch = () => {
                 return ZalgoPromise.resolve(new Response('foo', {
                     headers: new Headers({
-                        'content-type': 'text/plain'
+                        [ header ]: value
                     })
                 }));
             };
@@ -645,12 +647,20 @@ describe('rule cases', () => {
 
         }).then(() => {
             return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header) !== value) {
+                throw new Error(`Expected ${ header } header to be ${ value }`);
+            }
         });
     });
 
-    it('should make a request with a disallowed default header in the response', () => {
+    it('should make a request with a disallowed default header in the response and not return it to the client', () => {
 
         let path = '/api/foo';
+        let header = 'pragma';
+        let value = 'nocache';
 
         let proxy = connect({ url: FRAME_URL });
 
@@ -660,7 +670,7 @@ describe('rule cases', () => {
             source.fetch = () => {
                 return ZalgoPromise.resolve(new Response('foo', {
                     headers: new Headers({
-                        'content-type': 'text/plain'
+                        [ header ]: value
                     })
                 }));
             };
@@ -675,13 +685,21 @@ describe('rule cases', () => {
             });
 
         }).then(() => {
-            return expectError(proxy.fetch(path));
+            return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header)) {
+                throw new Error(`Expected ${ header } header to be blank`);
+            }
         });
     });
 
-    it('should make a request with an allowed custom header in the response', () => {
+    it('should make a request with an allowed custom header string in the response', () => {
 
         let path = '/api/foo';
+        let header = 'x-csrf';
+        let value = 'abc123';
 
         let proxy = connect({ url: FRAME_URL });
 
@@ -691,7 +709,7 @@ describe('rule cases', () => {
             source.fetch = () => {
                 return ZalgoPromise.resolve(new Response('foo', {
                     headers: new Headers({
-                        'x-csrf': 'abc123'
+                        [ header ]: value
                     })
                 }));
             };
@@ -700,19 +718,27 @@ describe('rule cases', () => {
                 allow: [
                     {
                         path,
-                        responseHeaders: [ 'content-type', 'x-csrf' ]
+                        responseHeaders: 'x-csrf'
                     }
                 ]
             });
 
         }).then(() => {
             return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header) !== value) {
+                throw new Error(`Expected ${ header } header to be ${ value }`);
+            }
         });
     });
 
-    it('should make a request with a disallowed custom header in the response and error out', () => {
+    it('should make a request with an allowed custom header array in the response', () => {
 
         let path = '/api/foo';
+        let header = 'x-csrf';
+        let value = 'abc123';
 
         let proxy = connect({ url: FRAME_URL });
 
@@ -722,7 +748,7 @@ describe('rule cases', () => {
             source.fetch = () => {
                 return ZalgoPromise.resolve(new Response('foo', {
                     headers: new Headers({
-                        'x-csrf': 'abc123'
+                        [ header ]: value
                     })
                 }));
             };
@@ -730,13 +756,166 @@ describe('rule cases', () => {
             return serve({
                 allow: [
                     {
+                        path,
+                        responseHeaders: [ 'x-csrf' ]
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header) !== value) {
+                throw new Error(`Expected ${ header } header to be ${ value }`);
+            }
+        });
+    });
+
+    it('should make a request with an allowed custom header regex in the response', () => {
+
+        let path = '/api/foo';
+        let header = 'x-csrf';
+        let value = 'abc123';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response('foo', {
+                    headers: new Headers({
+                        [ header ]: value
+                    })
+                }));
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path,
+                        responseHeaders: /^x-csrf$/
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header) !== value) {
+                throw new Error(`Expected ${ header } header to be ${ value }`);
+            }
+        });
+    });
+
+    it('should make a request with an allowed custom header wildcard in the response', () => {
+
+        let path = '/api/foo';
+        let header = 'x-csrf';
+        let value = 'abc123';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response('foo', {
+                    headers: new Headers({
+                        [ header ]: value
+                    })
+                }));
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path,
+                        responseHeaders: '*'
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header) !== value) {
+                throw new Error(`Expected ${ header } header to be ${ value }`);
+            }
+        });
+    });
+
+    it('should make a request with a disallowed custom header in the response and not return it to the client', () => {
+
+        let path = '/api/foo';
+        let header = 'x-csrf';
+        let value = 'abc123';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response('foo', {
+                    headers: new Headers({
+                        [ header ]: value
+                    })
+                }));
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path,
+                        responseHeaders: []
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(path);
+
+        }).then(response => {
+
+            if (response.headers.get(header)) {
+                throw new Error(`Expected ${ header } header to be blank`);
+            }
+        });
+    });
+
+    it('should make a request with a non-matching and a matching rule', () => {
+
+        let path = '/api/foo';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response());
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path: '/api/bar'
+                    },
+                    {
                         path
                     }
                 ]
             });
 
         }).then(() => {
-            return expectError(proxy.fetch(path));
+            return proxy.fetch(path);
         });
     });
 });

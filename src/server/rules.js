@@ -5,7 +5,7 @@ import URL from 'url-parse';
 
 import { WILDCARD, STANDARD_REQUEST_METHODS, STANDARD_REQUEST_HEADERS,
     STANDARD_RESPONSE_HEADERS, STANDARD_REQUEST_OPTIONS } from '../constants';
-import { isRegex } from '../util';
+import { isRegex, extractKeysByArray, extractKeysByRegex, extractKeysByString } from '../util';
 
 export const DEFAULT_RULES : AllowRuleType = {
     origin:          WILDCARD,
@@ -33,6 +33,24 @@ function validateMatcher(name : string, matcher : mixed) {
     throw new Error(`Invalid matcher for ${ name }: ${ Object.prototype.toString.call(matcher) }`);
 }
 
+function extractMatches(obj : Object, matcher : StringMatcherType) : Object {
+
+    if (matcher === WILDCARD) {
+        return obj;
+    }
+
+    if (Array.isArray(matcher)) {
+        return extractKeysByArray(obj, matcher);
+    } else if (isRegex(matcher)) {
+        // $FlowFixMe
+        return extractKeysByRegex(obj, matcher);
+    } else if (typeof matcher === 'string') {
+        return extractKeysByString(obj, matcher);
+    }
+
+    throw new Error(`Invalid matcher`);
+}
+
 export function validateRules(rules : Array<AllowRuleType>) : ?boolean {
     for (let rule of rules) {
         for (let key of Object.keys(rule)) {
@@ -44,18 +62,44 @@ export function validateRules(rules : Array<AllowRuleType>) : ?boolean {
     }
 }
 
+function stringifyValue(value : string | Array<string>) : string {
+
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            return '[]';
+        }
+        return `[ ${ value.map(item => `'${ item }'`).join(', ') } ]`;
+    }
+
+    return `'${ value }'`;
+}
+
 function stringifyMatcher(matcher : StringMatcherType) : string {
+
+    if (typeof matcher === 'string') {
+        return `[ '${ matcher }' ]`;
+    }
+
     if (Array.isArray(matcher)) {
         if (matcher.length === 0) {
             return '[]';
         }
-        return `[ ${ matcher.join(', ') } ]`;
+        return `[ ${ matcher.map(item => `'${ item }'`).join(', ') } ]`;
+    }
+
+    if (isRegex(matcher)) {
+        return `/${ matcher.source }/`;
     }
 
     return matcher.toString();
 }
 
-function match(value : string, matcher : StringMatcherType) : boolean {
+function match(value : string | Array<string>, matcher : StringMatcherType) : boolean {
+
+    if (Array.isArray(value)) {
+        return value.every(item => match(item, matcher));
+    }
+
     if (typeof matcher === 'string') {
         return (matcher === WILDCARD || value === matcher);
     } else if (isRegex(matcher)) {
@@ -65,19 +109,6 @@ function match(value : string, matcher : StringMatcherType) : boolean {
         return matcher.some(option => option === value);
     }
     return false;
-}
-
-function validateMatch(name : string, value : string | Array<string>, matcher : StringMatcherType) {
-
-    if (Array.isArray(value)) {
-        for (let item of value) {
-            validateMatch(name, item, matcher);
-        }
-    } else {
-        if (!match(value, matcher)) {
-            throw new Error(`Invalid ${ name }: ${ value } - allowed: ${ stringifyMatcher(matcher) }`);
-        }
-    }
 }
 
 function parseUrl(url : string) : { domain : string, path : string, query : { [string] : string } } {
@@ -91,10 +122,14 @@ function parseUrl(url : string) : { domain : string, path : string, query : { [s
     return { domain, path, query };
 }
 
-export function checkRequestRules(origin : string, url : string, options : SerializedRequestType, allow : Array<AllowRuleType>) {
+export function getMatchingRequestRule(origin : string, url : string, options : SerializedRequestType, allow : Array<AllowRuleType>) : AllowRuleType {
     let  { domain, path, query } = parseUrl(url);
 
+    let failedRules = [];
+
     for (let rule of allow) {
+
+        let failedMatchers = [];
 
         let items : Array<{ name : string, value : string | Array<string> }> = [
             {
@@ -128,23 +163,30 @@ export function checkRequestRules(origin : string, url : string, options : Seria
         ];
 
         for (let { name, value } of items) {
-            validateMatch(name, value, rule.hasOwnProperty(name) ? rule[name] : DEFAULT_RULES[name]);
+            let matcher = rule.hasOwnProperty(name) ? rule[name] : DEFAULT_RULES[name];
+
+            if (!match(value, matcher)) {
+                failedMatchers.push({ name, value, matcher });
+            }
+        }
+
+        if (failedMatchers.length) {
+            failedRules.push(failedMatchers);
+        } else {
+            return rule;
         }
     }
+
+    let errMessage = failedRules.map(failedMatchers => {
+        return failedMatchers.map(({ name, value, matcher }) => {
+            return `- ${ name } :: got ${ stringifyValue(value) } - expected ${ stringifyMatcher(matcher) }`;
+        }).join('\n');
+    }).join('\n\n');
+
+    throw new Error(`Failed to find matching rule for request:\n\n${ errMessage }\n`);
 }
 
-export function checkResponseRules(response : SerializedResponseType, allow : Array<AllowRuleType>) {
-    for (let rule of allow) {
-
-        let items : Array<{ name : string, value : string | Array<string> }> = [
-            {
-                name:  'responseHeaders',
-                value: Object.keys(response.headers)
-            }
-        ];
-
-        for (let { name, value } of items) {
-            validateMatch(name, value, rule.hasOwnProperty(name) ? rule[name] : DEFAULT_RULES[name]);
-        }
-    }
+export function filterResponseHeaders(headers : { [string] : string }, rule : AllowRuleType) : { [string] : string } {
+    let responseHeaders = rule.responseHeaders || DEFAULT_RULES.responseHeaders || [];
+    return extractMatches(headers, responseHeaders);
 }

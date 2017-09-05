@@ -4,7 +4,7 @@ import { on } from 'post-robot/src';
 
 import { FETCH_PROXY } from '../constants';
 
-import { validateRules, checkRequestRules, checkResponseRules, DEFAULT_RULES } from './rules';
+import { validateRules, getMatchingRequestRule, filterResponseHeaders, DEFAULT_RULES } from './rules';
 import { deserializeRequest, serializeResponse } from './serdes';
 
 type ServeOptions = {|
@@ -23,12 +23,12 @@ export function serve({ allow = [] } : ServeOptions = {}) : CancelableType {
 
     let listener = on(FETCH_PROXY, {}, ({ origin, data: { url, options } }) => {
 
-        checkRequestRules(origin, url, options, allow);
+        const rule = getMatchingRequestRule(origin, url, options, allow);
 
         return window.fetch(url, deserializeRequest(options))
             .then(response => {
                 let serializedResponse = serializeResponse(response);
-                checkResponseRules(serializedResponse, allow);
+                serializedResponse.headers = filterResponseHeaders(serializedResponse.headers, rule);
                 return serializedResponse;
             });
     });
