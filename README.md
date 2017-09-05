@@ -23,6 +23,8 @@ Let's say:
 In the parent window `rorschach.com`:
 
 ```javascript
+<script src="https://rawgit.com/krakenjs/fetch-robot/master/dist/fetch-robot.min.js"></script>
+
 <script>
     // Create a proxy instance and open the iframe
 
@@ -40,8 +42,8 @@ In the child window `niteowl.com/fetch-robot-proxy`:
 
 ```javascript
 <!-- Add a fetch polyfill for older browsers -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
+<script src="https://rawgit.com/krakenjs/fetch-robot/master/dist/fetch-robot.min.js"></script>
 
 <script>
     // Enable requests to be passed through the current frame using fetchRobot
