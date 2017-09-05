@@ -592,7 +592,8 @@
                     METHOD: "postrobot_method",
                     ERROR: "postrobot_error",
                     PROMISE: "postrobot_promise",
-                    ZALGO_PROMISE: "postrobot_zalgo_promise"
+                    ZALGO_PROMISE: "postrobot_zalgo_promise",
+                    REGEX: "regex"
                 },
                 SEND_STRATEGIES: {
                     POST_MESSAGE: "postrobot_post_message",
@@ -1346,11 +1347,17 @@
                     }, name + ".then")
                 };
             }
+            function serializeRegex(regex) {
+                return {
+                    __type__: __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.REGEX,
+                    __source__: regex.source
+                };
+            }
             function serializeMethods(destination, domain, obj) {
                 return Object(__WEBPACK_IMPORTED_MODULE_4__util__.h)({
                     obj: obj
                 }, function(item, key) {
-                    return "function" == typeof item ? serializeMethod(destination, domain, item, key.toString()) : item instanceof Error ? serializeError(item) : window.Promise && item instanceof window.Promise ? serializePromise(destination, domain, item, key.toString()) : __WEBPACK_IMPORTED_MODULE_2_zalgo_promise_src__.a.isPromise(item) ? serializeZalgoPromise(destination, domain, item, key.toString()) : void 0;
+                    return "function" == typeof item ? serializeMethod(destination, domain, item, key.toString()) : item instanceof Error ? serializeError(item) : window.Promise && item instanceof window.Promise ? serializePromise(destination, domain, item, key.toString()) : __WEBPACK_IMPORTED_MODULE_2_zalgo_promise_src__.a.isPromise(item) ? serializeZalgoPromise(destination, domain, item, key.toString()) : Object(__WEBPACK_IMPORTED_MODULE_4__util__.c)(item) ? serializeRegex(item) : void 0;
                 }).obj;
             }
             function deserializeMethod(source, origin, obj) {
@@ -1392,11 +1399,14 @@
                     return deserializeMethod(source, origin, prom.__then__)(resolve, reject);
                 }) : deserializeZalgoPromise(source, origin, prom);
             }
+            function deserializeRegex(source, origin, item) {
+                return new RegExp(item.__source__);
+            }
             function deserializeMethods(source, origin, obj) {
                 return Object(__WEBPACK_IMPORTED_MODULE_4__util__.h)({
                     obj: obj
                 }, function(item, key) {
-                    if ("object" === (void 0 === item ? "undefined" : _typeof(item)) && null !== item) return isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.METHOD) ? deserializeMethod(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.ERROR) ? deserializeError(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.PROMISE) ? deserializePromise(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.ZALGO_PROMISE) ? deserializeZalgoPromise(source, origin, item) : void 0;
+                    if ("object" === (void 0 === item ? "undefined" : _typeof(item)) && null !== item) return isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.METHOD) ? deserializeMethod(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.ERROR) ? deserializeError(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.PROMISE) ? deserializePromise(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.ZALGO_PROMISE) ? deserializeZalgoPromise(source, origin, item) : isSerialized(item, __WEBPACK_IMPORTED_MODULE_3__conf__.b.SERIALIZATION_TYPES.REGEX) ? deserializeRegex(source, origin, item) : void 0;
                 }).obj;
             }
             __webpack_require__.d(__webpack_exports__, "b", function() {
@@ -1819,6 +1829,242 @@
             __webpack_exports__.b = listener;
             var __WEBPACK_IMPORTED_MODULE_0_cross_domain_utils_src__ = __webpack_require__("./node_modules/cross-domain-utils/src/index.js"), __WEBPACK_IMPORTED_MODULE_1_zalgo_promise_src__ = __webpack_require__("./node_modules/zalgo-promise/src/index.js"), __WEBPACK_IMPORTED_MODULE_2__lib__ = __webpack_require__("./node_modules/post-robot/src/lib/index.js"), __WEBPACK_IMPORTED_MODULE_3__drivers__ = __webpack_require__("./node_modules/post-robot/src/drivers/index.js"), __WEBPACK_IMPORTED_MODULE_4__conf__ = __webpack_require__("./node_modules/post-robot/src/conf/index.js");
         },
+        "./node_modules/querystringify/index.js": function(module, exports, __webpack_require__) {
+            "use strict";
+            function decode(input) {
+                return decodeURIComponent(input.replace(/\+/g, " "));
+            }
+            function querystring(query) {
+                for (var part, parser = /([^=?&]+)=?([^&]*)/g, result = {}; part = parser.exec(query); result[decode(part[1])] = decode(part[2])) ;
+                return result;
+            }
+            function querystringify(obj, prefix) {
+                prefix = prefix || "";
+                var pairs = [];
+                "string" != typeof prefix && (prefix = "?");
+                for (var key in obj) has.call(obj, key) && pairs.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
+                return pairs.length ? prefix + pairs.join("&") : "";
+            }
+            var has = Object.prototype.hasOwnProperty;
+            exports.stringify = querystringify;
+            exports.parse = querystring;
+        },
+        "./node_modules/requires-port/index.js": function(module, exports, __webpack_require__) {
+            "use strict";
+            module.exports = function(port, protocol) {
+                protocol = protocol.split(":")[0];
+                port = +port;
+                if (!port) return !1;
+                switch (protocol) {
+                  case "http":
+                  case "ws":
+                    return 80 !== port;
+
+                  case "https":
+                  case "wss":
+                    return 443 !== port;
+
+                  case "ftp":
+                    return 21 !== port;
+
+                  case "gopher":
+                    return 70 !== port;
+
+                  case "file":
+                    return !1;
+                }
+                return 0 !== port;
+            };
+        },
+        "./node_modules/url-parse/index.js": function(module, exports, __webpack_require__) {
+            "use strict";
+            (function(global) {
+                function lolcation(loc) {
+                    loc = loc || global.location || {};
+                    var key, finaldestination = {}, type = void 0 === loc ? "undefined" : _typeof(loc);
+                    if ("blob:" === loc.protocol) finaldestination = new URL(unescape(loc.pathname), {}); else if ("string" === type) {
+                        finaldestination = new URL(loc, {});
+                        for (key in ignore) delete finaldestination[key];
+                    } else if ("object" === type) {
+                        for (key in loc) key in ignore || (finaldestination[key] = loc[key]);
+                        void 0 === finaldestination.slashes && (finaldestination.slashes = slashes.test(loc.href));
+                    }
+                    return finaldestination;
+                }
+                function extractProtocol(address) {
+                    var match = protocolre.exec(address);
+                    return {
+                        protocol: match[1] ? match[1].toLowerCase() : "",
+                        slashes: !!match[2],
+                        rest: match[3]
+                    };
+                }
+                function resolve(relative, base) {
+                    for (var path = (base || "/").split("/").slice(0, -1).concat(relative.split("/")), i = path.length, last = path[i - 1], unshift = !1, up = 0; i--; ) if ("." === path[i]) path.splice(i, 1); else if (".." === path[i]) {
+                        path.splice(i, 1);
+                        up++;
+                    } else if (up) {
+                        0 === i && (unshift = !0);
+                        path.splice(i, 1);
+                        up--;
+                    }
+                    unshift && path.unshift("");
+                    "." !== last && ".." !== last || path.push("");
+                    return path.join("/");
+                }
+                function URL(address, location, parser) {
+                    if (!(this instanceof URL)) return new URL(address, location, parser);
+                    var relative, extracted, parse, instruction, index, key, instructions = rules.slice(), type = void 0 === location ? "undefined" : _typeof(location), url = this, i = 0;
+                    if ("object" !== type && "string" !== type) {
+                        parser = location;
+                        location = null;
+                    }
+                    parser && "function" != typeof parser && (parser = qs.parse);
+                    location = lolcation(location);
+                    extracted = extractProtocol(address || "");
+                    relative = !extracted.protocol && !extracted.slashes;
+                    url.slashes = extracted.slashes || relative && location.slashes;
+                    url.protocol = extracted.protocol || location.protocol || "";
+                    address = extracted.rest;
+                    extracted.slashes || (instructions[2] = [ /(.*)/, "pathname" ]);
+                    for (;i < instructions.length; i++) {
+                        instruction = instructions[i];
+                        parse = instruction[0];
+                        key = instruction[1];
+                        if (parse !== parse) url[key] = address; else if ("string" == typeof parse) {
+                            if (~(index = address.indexOf(parse))) if ("number" == typeof instruction[2]) {
+                                url[key] = address.slice(0, index);
+                                address = address.slice(index + instruction[2]);
+                            } else {
+                                url[key] = address.slice(index);
+                                address = address.slice(0, index);
+                            }
+                        } else if (index = parse.exec(address)) {
+                            url[key] = index[1];
+                            address = address.slice(0, index.index);
+                        }
+                        url[key] = url[key] || (relative && instruction[3] ? location[key] || "" : "");
+                        instruction[4] && (url[key] = url[key].toLowerCase());
+                    }
+                    parser && (url.query = parser(url.query));
+                    relative && location.slashes && "/" !== url.pathname.charAt(0) && ("" !== url.pathname || "" !== location.pathname) && (url.pathname = resolve(url.pathname, location.pathname));
+                    if (!required(url.port, url.protocol)) {
+                        url.host = url.hostname;
+                        url.port = "";
+                    }
+                    url.username = url.password = "";
+                    if (url.auth) {
+                        instruction = url.auth.split(":");
+                        url.username = instruction[0] || "";
+                        url.password = instruction[1] || "";
+                    }
+                    url.origin = url.protocol && url.host && "file:" !== url.protocol ? url.protocol + "//" + url.host : "null";
+                    url.href = url.toString();
+                }
+                function set(part, value, fn) {
+                    var url = this;
+                    switch (part) {
+                      case "query":
+                        "string" == typeof value && value.length && (value = (fn || qs.parse)(value));
+                        url[part] = value;
+                        break;
+
+                      case "port":
+                        url[part] = value;
+                        if (required(value, url.protocol)) value && (url.host = url.hostname + ":" + value); else {
+                            url.host = url.hostname;
+                            url[part] = "";
+                        }
+                        break;
+
+                      case "hostname":
+                        url[part] = value;
+                        url.port && (value += ":" + url.port);
+                        url.host = value;
+                        break;
+
+                      case "host":
+                        url[part] = value;
+                        if (/:\d+$/.test(value)) {
+                            value = value.split(":");
+                            url.port = value.pop();
+                            url.hostname = value.join(":");
+                        } else {
+                            url.hostname = value;
+                            url.port = "";
+                        }
+                        break;
+
+                      case "protocol":
+                        url.protocol = value.toLowerCase();
+                        url.slashes = !fn;
+                        break;
+
+                      case "pathname":
+                        url.pathname = value.length && "/" !== value.charAt(0) ? "/" + value : value;
+                        break;
+
+                      default:
+                        url[part] = value;
+                    }
+                    for (var i = 0; i < rules.length; i++) {
+                        var ins = rules[i];
+                        ins[4] && (url[ins[1]] = url[ins[1]].toLowerCase());
+                    }
+                    url.origin = url.protocol && url.host && "file:" !== url.protocol ? url.protocol + "//" + url.host : "null";
+                    url.href = url.toString();
+                    return url;
+                }
+                function toString(stringify) {
+                    stringify && "function" == typeof stringify || (stringify = qs.stringify);
+                    var query, url = this, protocol = url.protocol;
+                    protocol && ":" !== protocol.charAt(protocol.length - 1) && (protocol += ":");
+                    var result = protocol + (url.slashes ? "//" : "");
+                    if (url.username) {
+                        result += url.username;
+                        url.password && (result += ":" + url.password);
+                        result += "@";
+                    }
+                    result += url.host + url.pathname;
+                    query = "object" === _typeof(url.query) ? stringify(url.query) : url.query;
+                    query && (result += "?" !== query.charAt(0) ? "?" + query : query);
+                    url.hash && (result += url.hash);
+                    return result;
+                }
+                var _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+                    return typeof obj;
+                } : function(obj) {
+                    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+                }, required = __webpack_require__("./node_modules/requires-port/index.js"), qs = __webpack_require__("./node_modules/querystringify/index.js"), protocolre = /^([a-z][a-z0-9.+-]*:)?(\/\/)?([\S\s]*)/i, slashes = /^[A-Za-z][A-Za-z0-9+-.]*:\/\//, rules = [ [ "#", "hash" ], [ "?", "query" ], [ "/", "pathname" ], [ "@", "auth", 1 ], [ NaN, "host", void 0, 1, 1 ], [ /:(\d+)$/, "port", void 0, 1 ], [ NaN, "hostname", void 0, 1, 1 ] ], ignore = {
+                    hash: 1,
+                    query: 1
+                };
+                URL.prototype = {
+                    set: set,
+                    toString: toString
+                };
+                URL.extractProtocol = extractProtocol;
+                URL.location = lolcation;
+                URL.qs = qs;
+                module.exports = URL;
+            }).call(exports, __webpack_require__("./node_modules/webpack/buildin/global.js"));
+        },
+        "./node_modules/webpack/buildin/global.js": function(module, exports) {
+            var g, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+                return typeof obj;
+            } : function(obj) {
+                return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+            };
+            g = function() {
+                return this;
+            }();
+            try {
+                g = g || Function("return this")() || (0, eval)("this");
+            } catch (e) {
+                "object" === ("undefined" == typeof window ? "undefined" : _typeof(window)) && (g = window);
+            }
+            module.exports = g;
+        },
         "./node_modules/zalgo-promise/src/exceptions.js": function(module, __webpack_exports__, __webpack_require__) {
             "use strict";
             function dispatchPossiblyUnhandledError(err) {
@@ -2146,109 +2392,23 @@
             __webpack_exports__.a = isPromise;
             var toString = {}.toString;
         },
-        "./src/child/index.js": function(module, __webpack_exports__, __webpack_require__) {
+        "./src/client/fetch.js": function(module, __webpack_exports__, __webpack_require__) {
             "use strict";
-            var __WEBPACK_IMPORTED_MODULE_0__server__ = __webpack_require__("./src/child/server.js");
-            __webpack_require__.d(__webpack_exports__, "a", function() {
-                return __WEBPACK_IMPORTED_MODULE_0__server__.a;
-            });
-            __webpack_require__("./src/child/serialize.js");
-        },
-        "./src/child/serialize.js": function(module, __webpack_exports__, __webpack_require__) {
-            "use strict";
-            function serializeHeaders(headers) {
-                var result = {};
-                Array.from(headers.keys()).forEach(function(key) {
-                    result[key] = headers.get(key);
-                });
-                return result;
-            }
-            function serializeResponse(response) {
-                return {
-                    ok: response.ok,
-                    redirected: response.redirected,
-                    status: response.status,
-                    statusText: response.statusText,
-                    type: response.type,
-                    url: response.url,
-                    bodyUsed: response.bodyUsed,
-                    headers: serializeHeaders(response.headers),
-                    text: response.text.bind(response),
-                    json: response.json.bind(response),
-                    clone: function() {
-                        return serializeResponse(response.clone());
-                    }
-                };
-            }
-            __webpack_exports__.a = serializeResponse;
-        },
-        "./src/child/server.js": function(module, __webpack_exports__, __webpack_require__) {
-            "use strict";
-            function serve() {
-                var _ref = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, _ref$allow = _ref.allow;
-                if (!(void 0 === _ref$allow ? [] : _ref$allow)) throw new Error("Request not allowed");
-                return {
-                    cancel: Object(__WEBPACK_IMPORTED_MODULE_0_post_robot_src__.a)(__WEBPACK_IMPORTED_MODULE_1__constants__.a, {}, function(_ref2) {
-                        var _ref2$data = _ref2.data, url = _ref2$data.url, options = _ref2$data.options;
-                        return window.fetch(url, options).then(function(response) {
-                            return Object(__WEBPACK_IMPORTED_MODULE_2__serialize__.a)(response);
-                        });
-                    }).cancel
-                };
-            }
-            __webpack_exports__.a = serve;
-            var __WEBPACK_IMPORTED_MODULE_0_post_robot_src__ = __webpack_require__("./node_modules/post-robot/src/index.js"), __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__("./src/constants.js"), __WEBPACK_IMPORTED_MODULE_2__serialize__ = __webpack_require__("./src/child/serialize.js");
-        },
-        "./src/constants.js": function(module, __webpack_exports__, __webpack_require__) {
-            "use strict";
-            __webpack_require__.d(__webpack_exports__, "a", function() {
-                return FETCH_PROXY;
-            });
-            var FETCH_PROXY = "fetch-robot-proxy";
-        },
-        "./src/index.js": function(module, __webpack_exports__, __webpack_require__) {
-            "use strict";
-            Object.defineProperty(__webpack_exports__, "__esModule", {
-                value: !0
-            });
-            var __WEBPACK_IMPORTED_MODULE_0__parent__ = __webpack_require__("./src/parent/index.js");
-            __webpack_require__.d(__webpack_exports__, "connect", function() {
-                return __WEBPACK_IMPORTED_MODULE_0__parent__.a;
-            });
-            __webpack_require__.d(__webpack_exports__, "destroyAll", function() {
-                return __WEBPACK_IMPORTED_MODULE_0__parent__.b;
-            });
-            var __WEBPACK_IMPORTED_MODULE_1__child__ = __webpack_require__("./src/child/index.js");
-            __webpack_require__.d(__webpack_exports__, "serve", function() {
-                return __WEBPACK_IMPORTED_MODULE_1__child__.a;
-            });
-        },
-        "./src/parent/deserialize.js": function(module, __webpack_exports__, __webpack_require__) {
-            "use strict";
-            function deserializeResponse(response) {
-                return response.text().then(function(text) {
-                    return new window.Response(text);
-                });
-            }
-            __webpack_exports__.a = deserializeResponse;
-            __webpack_require__("./node_modules/zalgo-promise/src/index.js");
-        },
-        "./src/parent/fetch.js": function(module, __webpack_exports__, __webpack_require__) {
-            "use strict";
-            function fetch(win, url, options) {
+            function fetch(win, url) {
+                var options = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {};
                 return Object(__WEBPACK_IMPORTED_MODULE_1_post_robot_src__.b)(win, __WEBPACK_IMPORTED_MODULE_2__constants__.a, {
                     url: url,
-                    options: options
+                    options: Object(__WEBPACK_IMPORTED_MODULE_3__serdes__.b)(options)
                 }).then(function(_ref) {
                     var data = _ref.data;
-                    return Object(__WEBPACK_IMPORTED_MODULE_3__deserialize__.a)(data);
+                    return Object(__WEBPACK_IMPORTED_MODULE_3__serdes__.a)(data);
                 });
             }
             __webpack_exports__.a = fetch;
             var __WEBPACK_IMPORTED_MODULE_1_post_robot_src__ = (__webpack_require__("./node_modules/zalgo-promise/src/index.js"), 
-            __webpack_require__("./node_modules/post-robot/src/index.js")), __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__("./src/constants.js"), __WEBPACK_IMPORTED_MODULE_3__deserialize__ = __webpack_require__("./src/parent/deserialize.js");
+            __webpack_require__("./node_modules/post-robot/src/index.js")), __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__("./src/constants.js"), __WEBPACK_IMPORTED_MODULE_3__serdes__ = __webpack_require__("./src/client/serdes.js");
         },
-        "./src/parent/frame.js": function(module, __webpack_exports__, __webpack_require__) {
+        "./src/client/frame.js": function(module, __webpack_exports__, __webpack_require__) {
             "use strict";
             function getFrame(url) {
                 var domain = Object(__WEBPACK_IMPORTED_MODULE_0_cross_domain_utils_src__.d)(url);
@@ -2263,7 +2423,7 @@
                 }
                 return frames[domain];
             }
-            function destroyAll() {
+            function destroyFrames() {
                 for (var _iterator = Object.keys(frames), _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
                     var _ref;
                     if (_isArray) {
@@ -2280,22 +2440,22 @@
                 }
             }
             __webpack_exports__.b = getFrame;
-            __webpack_exports__.a = destroyAll;
+            __webpack_exports__.a = destroyFrames;
             var __WEBPACK_IMPORTED_MODULE_0_cross_domain_utils_src__ = __webpack_require__("./node_modules/cross-domain-utils/src/index.js"), frames = {};
         },
-        "./src/parent/index.js": function(module, __webpack_exports__, __webpack_require__) {
+        "./src/client/index.js": function(module, __webpack_exports__, __webpack_require__) {
             "use strict";
-            var __WEBPACK_IMPORTED_MODULE_0__proxy__ = __webpack_require__("./src/parent/proxy.js");
+            var __WEBPACK_IMPORTED_MODULE_0__proxy__ = __webpack_require__("./src/client/proxy.js");
             __webpack_require__.d(__webpack_exports__, "a", function() {
                 return __WEBPACK_IMPORTED_MODULE_0__proxy__.a;
             });
-            var __WEBPACK_IMPORTED_MODULE_3__frame__ = (__webpack_require__("./src/parent/fetch.js"), 
-            __webpack_require__("./src/parent/deserialize.js"), __webpack_require__("./src/parent/frame.js"));
+            var __WEBPACK_IMPORTED_MODULE_3__frame__ = (__webpack_require__("./src/client/fetch.js"), 
+            __webpack_require__("./src/client/serdes.js"), __webpack_require__("./src/client/frame.js"));
             __webpack_require__.d(__webpack_exports__, "b", function() {
                 return __WEBPACK_IMPORTED_MODULE_3__frame__.a;
             });
         },
-        "./src/parent/proxy.js": function(module, __webpack_exports__, __webpack_require__) {
+        "./src/client/proxy.js": function(module, __webpack_exports__, __webpack_require__) {
             "use strict";
             function connect(_ref) {
                 var url = _ref.url, win = Object(__WEBPACK_IMPORTED_MODULE_1__frame__.b)(url).contentWindow;
@@ -2306,7 +2466,365 @@
                 };
             }
             __webpack_exports__.a = connect;
-            var __WEBPACK_IMPORTED_MODULE_0__fetch__ = __webpack_require__("./src/parent/fetch.js"), __WEBPACK_IMPORTED_MODULE_1__frame__ = __webpack_require__("./src/parent/frame.js");
+            var __WEBPACK_IMPORTED_MODULE_0__fetch__ = __webpack_require__("./src/client/fetch.js"), __WEBPACK_IMPORTED_MODULE_1__frame__ = __webpack_require__("./src/client/frame.js");
+        },
+        "./src/client/serdes.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function serializeRequest(options) {
+                var result = Object(__WEBPACK_IMPORTED_MODULE_3__util__.a)(options, __WEBPACK_IMPORTED_MODULE_1__constants__.d);
+                options && options.headers && (result.headers = Object(__WEBPACK_IMPORTED_MODULE_2__serdes__.b)(options.headers));
+                return result;
+            }
+            function deserializeResponse(response) {
+                return response.text().then(function(text) {
+                    return new window.Response(text, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: Object(__WEBPACK_IMPORTED_MODULE_2__serdes__.a)(response.headers)
+                    });
+                });
+            }
+            __webpack_exports__.b = serializeRequest;
+            __webpack_exports__.a = deserializeResponse;
+            var __WEBPACK_IMPORTED_MODULE_1__constants__ = (__webpack_require__("./node_modules/zalgo-promise/src/index.js"), 
+            __webpack_require__("./src/constants.js")), __WEBPACK_IMPORTED_MODULE_2__serdes__ = __webpack_require__("./src/serdes.js"), __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__("./src/util.js");
+        },
+        "./src/constants.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            __webpack_require__.d(__webpack_exports__, "a", function() {
+                return FETCH_PROXY;
+            });
+            __webpack_require__.d(__webpack_exports__, "f", function() {
+                return WILDCARD;
+            });
+            __webpack_require__.d(__webpack_exports__, "c", function() {
+                return STANDARD_REQUEST_METHODS;
+            });
+            __webpack_require__.d(__webpack_exports__, "b", function() {
+                return STANDARD_REQUEST_HEADERS;
+            });
+            __webpack_require__.d(__webpack_exports__, "e", function() {
+                return STANDARD_RESPONSE_HEADERS;
+            });
+            __webpack_require__.d(__webpack_exports__, "d", function() {
+                return STANDARD_REQUEST_OPTIONS;
+            });
+            var FETCH_PROXY = "fetch-robot-proxy", WILDCARD = "*", STANDARD_REQUEST_METHODS = [ "get", "head", "post", "put", "delete", "connect", "options", "trace", "patch" ], STANDARD_REQUEST_HEADERS = [ "accept", "accept-language", "content-language", "content-type" ], STANDARD_RESPONSE_HEADERS = [ "cache-control", "content-language", "content-type", "expires", "last-modified", "pragma" ], STANDARD_REQUEST_OPTIONS = [ "method", "body", "mode", "credentials", "cache", "redirect", "referrer", "integrity", "headers" ];
+        },
+        "./src/destroy.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function destroyAll() {
+                Object(__WEBPACK_IMPORTED_MODULE_0__client__.b)();
+                Object(__WEBPACK_IMPORTED_MODULE_1__server__.a)();
+            }
+            __webpack_exports__.a = destroyAll;
+            var __WEBPACK_IMPORTED_MODULE_0__client__ = __webpack_require__("./src/client/index.js"), __WEBPACK_IMPORTED_MODULE_1__server__ = __webpack_require__("./src/server/index.js");
+        },
+        "./src/index.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            Object.defineProperty(__webpack_exports__, "__esModule", {
+                value: !0
+            });
+            var __WEBPACK_IMPORTED_MODULE_0__client__ = __webpack_require__("./src/client/index.js");
+            __webpack_require__.d(__webpack_exports__, "connect", function() {
+                return __WEBPACK_IMPORTED_MODULE_0__client__.a;
+            });
+            var __WEBPACK_IMPORTED_MODULE_1__server__ = __webpack_require__("./src/server/index.js");
+            __webpack_require__.d(__webpack_exports__, "serve", function() {
+                return __WEBPACK_IMPORTED_MODULE_1__server__.b;
+            });
+            var __WEBPACK_IMPORTED_MODULE_2__destroy__ = __webpack_require__("./src/destroy.js");
+            __webpack_require__.d(__webpack_exports__, "destroyAll", function() {
+                return __WEBPACK_IMPORTED_MODULE_2__destroy__.a;
+            });
+            var __WEBPACK_IMPORTED_MODULE_3__constants__ = __webpack_require__("./src/constants.js");
+            __webpack_require__.d(__webpack_exports__, "WILDCARD", function() {
+                return __WEBPACK_IMPORTED_MODULE_3__constants__.f;
+            });
+            __webpack_require__.d(__webpack_exports__, "STANDARD_REQUEST_HEADERS", function() {
+                return __WEBPACK_IMPORTED_MODULE_3__constants__.b;
+            });
+            __webpack_require__.d(__webpack_exports__, "STANDARD_RESPONSE_HEADERS", function() {
+                return __WEBPACK_IMPORTED_MODULE_3__constants__.e;
+            });
+        },
+        "./src/serdes.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function serializeHeaders(headers) {
+                var result = {};
+                if (!headers) return result;
+                for (var _iterator = Array.from(headers.keys()), _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+                    var _ref;
+                    if (_isArray) {
+                        if (_i >= _iterator.length) break;
+                        _ref = _iterator[_i++];
+                    } else {
+                        _i = _iterator.next();
+                        if (_i.done) break;
+                        _ref = _i.value;
+                    }
+                    var key = _ref;
+                    result[key.toLowerCase()] = headers.get(key);
+                }
+                return result;
+            }
+            function deserializeHeaders(headers) {
+                return new Headers(headers || {});
+            }
+            __webpack_exports__.b = serializeHeaders;
+            __webpack_exports__.a = deserializeHeaders;
+        },
+        "./src/server/index.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            var __WEBPACK_IMPORTED_MODULE_0__server__ = __webpack_require__("./src/server/server.js");
+            __webpack_require__.d(__webpack_exports__, "a", function() {
+                return __WEBPACK_IMPORTED_MODULE_0__server__.a;
+            });
+            __webpack_require__.d(__webpack_exports__, "b", function() {
+                return __WEBPACK_IMPORTED_MODULE_0__server__.b;
+            });
+            __webpack_require__("./src/server/serdes.js");
+        },
+        "./src/server/rules.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function validateMatcher(name, matcher) {
+                if ("string" != typeof matcher && !(Object(__WEBPACK_IMPORTED_MODULE_3__util__.b)(matcher) || Array.isArray(matcher) && matcher.every(function(option) {
+                    return "string" == typeof option;
+                }))) throw new Error("Invalid matcher for " + name + ": " + Object.prototype.toString.call(matcher));
+            }
+            function validateRules(rules) {
+                for (var _iterator = rules, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+                    var _ref;
+                    if (_isArray) {
+                        if (_i >= _iterator.length) break;
+                        _ref = _iterator[_i++];
+                    } else {
+                        _i = _iterator.next();
+                        if (_i.done) break;
+                        _ref = _i.value;
+                    }
+                    for (var rule = _ref, _iterator2 = Object.keys(rule), _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator](); ;) {
+                        var _ref2;
+                        if (_isArray2) {
+                            if (_i2 >= _iterator2.length) break;
+                            _ref2 = _iterator2[_i2++];
+                        } else {
+                            _i2 = _iterator2.next();
+                            if (_i2.done) break;
+                            _ref2 = _i2.value;
+                        }
+                        var key = _ref2;
+                        if (!DEFAULT_RULES.hasOwnProperty(key)) throw new Error("Unexpected rule: " + key);
+                        validateMatcher(key, rule[key]);
+                    }
+                }
+            }
+            function stringifyMatcher(matcher) {
+                return Array.isArray(matcher) ? 0 === matcher.length ? "[]" : "[ " + matcher.join(", ") + " ]" : matcher.toString();
+            }
+            function match(value, matcher) {
+                return "string" == typeof matcher ? matcher === __WEBPACK_IMPORTED_MODULE_2__constants__.f || value === matcher : Object(__WEBPACK_IMPORTED_MODULE_3__util__.b)(matcher) ? matcher.test(value) : !!Array.isArray(matcher) && matcher.some(function(option) {
+                    return option === value;
+                });
+            }
+            function validateMatch(name, value, matcher) {
+                if (Array.isArray(value)) for (var _iterator3 = value, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator](); ;) {
+                    var _ref3;
+                    if (_isArray3) {
+                        if (_i3 >= _iterator3.length) break;
+                        _ref3 = _iterator3[_i3++];
+                    } else {
+                        _i3 = _iterator3.next();
+                        if (_i3.done) break;
+                        _ref3 = _i3.value;
+                    }
+                    var item = _ref3;
+                    validateMatch(name, item, matcher);
+                } else if (!match(value, matcher)) throw new Error("Invalid " + name + ": " + value + " - allowed: " + stringifyMatcher(matcher));
+            }
+            function parseUrl(url) {
+                var parsedUrl = new __WEBPACK_IMPORTED_MODULE_1_url_parse___default.a(url, window.mockDomain || window.location, !0);
+                return {
+                    domain: parsedUrl.protocol + "//" + parsedUrl.host,
+                    path: parsedUrl.pathname,
+                    query: parsedUrl.query
+                };
+            }
+            function checkRequestRules(origin, url, options, allow) {
+                for (var _parseUrl = parseUrl(url), domain = _parseUrl.domain, path = _parseUrl.path, query = _parseUrl.query, _iterator4 = allow, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator](); ;) {
+                    var _ref4;
+                    if (_isArray4) {
+                        if (_i4 >= _iterator4.length) break;
+                        _ref4 = _iterator4[_i4++];
+                    } else {
+                        _i4 = _iterator4.next();
+                        if (_i4.done) break;
+                        _ref4 = _i4.value;
+                    }
+                    for (var rule = _ref4, items = [ {
+                        name: "origin",
+                        value: origin
+                    }, {
+                        name: "domain",
+                        value: domain
+                    }, {
+                        name: "method",
+                        value: options.method || "get"
+                    }, {
+                        name: "path",
+                        value: path
+                    }, {
+                        name: "query",
+                        value: Object.keys(query)
+                    }, {
+                        name: "headers",
+                        value: Object.keys(options.headers || {})
+                    }, {
+                        name: "options",
+                        value: Object.keys(options)
+                    } ], _iterator5 = items, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator](); ;) {
+                        var _ref6;
+                        if (_isArray5) {
+                            if (_i5 >= _iterator5.length) break;
+                            _ref6 = _iterator5[_i5++];
+                        } else {
+                            _i5 = _iterator5.next();
+                            if (_i5.done) break;
+                            _ref6 = _i5.value;
+                        }
+                        var _ref7 = _ref6, _name = _ref7.name;
+                        validateMatch(_name, _ref7.value, rule.hasOwnProperty(_name) ? rule[_name] : DEFAULT_RULES[_name]);
+                    }
+                }
+            }
+            function checkResponseRules(response, allow) {
+                for (var _iterator6 = allow, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator](); ;) {
+                    var _ref8;
+                    if (_isArray6) {
+                        if (_i6 >= _iterator6.length) break;
+                        _ref8 = _iterator6[_i6++];
+                    } else {
+                        _i6 = _iterator6.next();
+                        if (_i6.done) break;
+                        _ref8 = _i6.value;
+                    }
+                    for (var rule = _ref8, items = [ {
+                        name: "responseHeaders",
+                        value: Object.keys(response.headers)
+                    } ], _iterator7 = items, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator](); ;) {
+                        var _ref10;
+                        if (_isArray7) {
+                            if (_i7 >= _iterator7.length) break;
+                            _ref10 = _iterator7[_i7++];
+                        } else {
+                            _i7 = _iterator7.next();
+                            if (_i7.done) break;
+                            _ref10 = _i7.value;
+                        }
+                        var _ref11 = _ref10, _name2 = _ref11.name;
+                        validateMatch(_name2, _ref11.value, rule.hasOwnProperty(_name2) ? rule[_name2] : DEFAULT_RULES[_name2]);
+                    }
+                }
+            }
+            __webpack_require__.d(__webpack_exports__, "a", function() {
+                return DEFAULT_RULES;
+            });
+            __webpack_exports__.d = validateRules;
+            __webpack_exports__.b = checkRequestRules;
+            __webpack_exports__.c = checkResponseRules;
+            var __WEBPACK_IMPORTED_MODULE_0_cross_domain_utils_src__ = __webpack_require__("./node_modules/cross-domain-utils/src/index.js"), __WEBPACK_IMPORTED_MODULE_1_url_parse__ = __webpack_require__("./node_modules/url-parse/index.js"), __WEBPACK_IMPORTED_MODULE_1_url_parse___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_url_parse__), __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__("./src/constants.js"), __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__("./src/util.js"), DEFAULT_RULES = {
+                origin: __WEBPACK_IMPORTED_MODULE_2__constants__.f,
+                domain: Object(__WEBPACK_IMPORTED_MODULE_0_cross_domain_utils_src__.c)(),
+                path: [],
+                query: __WEBPACK_IMPORTED_MODULE_2__constants__.f,
+                method: __WEBPACK_IMPORTED_MODULE_2__constants__.c,
+                headers: __WEBPACK_IMPORTED_MODULE_2__constants__.b,
+                options: __WEBPACK_IMPORTED_MODULE_2__constants__.d,
+                responseHeaders: __WEBPACK_IMPORTED_MODULE_2__constants__.e
+            };
+        },
+        "./src/server/serdes.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function deserializeRequest(options) {
+                var result = Object(__WEBPACK_IMPORTED_MODULE_2__util__.a)(options, __WEBPACK_IMPORTED_MODULE_0__constants__.d);
+                options && options.headers && (result.headers = Object(__WEBPACK_IMPORTED_MODULE_1__serdes__.a)(options.headers));
+                return result;
+            }
+            function serializeResponse(response) {
+                return {
+                    status: response.status,
+                    statusText: response.statusText,
+                    text: response.text.bind(response),
+                    headers: Object(__WEBPACK_IMPORTED_MODULE_1__serdes__.b)(response.headers)
+                };
+            }
+            __webpack_exports__.a = deserializeRequest;
+            __webpack_exports__.b = serializeResponse;
+            var __WEBPACK_IMPORTED_MODULE_0__constants__ = __webpack_require__("./src/constants.js"), __WEBPACK_IMPORTED_MODULE_1__serdes__ = __webpack_require__("./src/serdes.js"), __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__("./src/util.js");
+        },
+        "./src/server/server.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function serve() {
+                var _ref = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, _ref$allow = _ref.allow, allow = void 0 === _ref$allow ? [] : _ref$allow;
+                0 === allow.length && (allow = [ __WEBPACK_IMPORTED_MODULE_2__rules__.a ]);
+                Object(__WEBPACK_IMPORTED_MODULE_2__rules__.d)(allow);
+                var listener = Object(__WEBPACK_IMPORTED_MODULE_0_post_robot_src__.a)(__WEBPACK_IMPORTED_MODULE_1__constants__.a, {}, function(_ref2) {
+                    var origin = _ref2.origin, _ref2$data = _ref2.data, url = _ref2$data.url, options = _ref2$data.options;
+                    Object(__WEBPACK_IMPORTED_MODULE_2__rules__.b)(origin, url, options, allow);
+                    return window.fetch(url, Object(__WEBPACK_IMPORTED_MODULE_3__serdes__.a)(options)).then(function(response) {
+                        var serializedResponse = Object(__WEBPACK_IMPORTED_MODULE_3__serdes__.b)(response);
+                        Object(__WEBPACK_IMPORTED_MODULE_2__rules__.c)(serializedResponse, allow);
+                        return serializedResponse;
+                    });
+                });
+                listeners.push(listener);
+                return {
+                    cancel: listener.cancel
+                };
+            }
+            function destroyListeners() {
+                for (var _iterator = listeners, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+                    var _ref3;
+                    if (_isArray) {
+                        if (_i >= _iterator.length) break;
+                        _ref3 = _iterator[_i++];
+                    } else {
+                        _i = _iterator.next();
+                        if (_i.done) break;
+                        _ref3 = _i.value;
+                    }
+                    _ref3.cancel();
+                }
+            }
+            __webpack_exports__.b = serve;
+            __webpack_exports__.a = destroyListeners;
+            var __WEBPACK_IMPORTED_MODULE_0_post_robot_src__ = __webpack_require__("./node_modules/post-robot/src/index.js"), __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__("./src/constants.js"), __WEBPACK_IMPORTED_MODULE_2__rules__ = __webpack_require__("./src/server/rules.js"), __WEBPACK_IMPORTED_MODULE_3__serdes__ = __webpack_require__("./src/server/serdes.js"), listeners = [];
+        },
+        "./src/util.js": function(module, __webpack_exports__, __webpack_require__) {
+            "use strict";
+            function extractKeys(obj, keys) {
+                var result = {};
+                if (!obj) return result;
+                for (var _iterator = keys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+                    var _ref;
+                    if (_isArray) {
+                        if (_i >= _iterator.length) break;
+                        _ref = _iterator[_i++];
+                    } else {
+                        _i = _iterator.next();
+                        if (_i.done) break;
+                        _ref = _i.value;
+                    }
+                    var key = _ref;
+                    obj.hasOwnProperty(key) && (result[key] = obj[key]);
+                }
+                return result;
+            }
+            function isRegex(item) {
+                return "[object RegExp]" === Object.prototype.toString.call(item);
+            }
+            __webpack_exports__.a = extractKeys;
+            __webpack_exports__.b = isRegex;
         }
     });
 });

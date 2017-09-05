@@ -22,6 +22,9 @@ declare class Class0 {
   json(): Promise<any>;
   text(): Promise<string>;
 }
-declare export function connect(_: $Exact<{url: string}>): $Exact<{fetch: (url: string, options: $Exact<{method: string}>) => any}>;
+declare export var STANDARD_REQUEST_HEADERS: [string, string, string, string];
+declare export var STANDARD_RESPONSE_HEADERS: [string, string, string, string, string, string];
+declare export var WILDCARD: string;
+declare export function connect(_: $Exact<{url: string}>): $Exact<{fetch: (url: string, options: ?{body?: ?string | any | any | any | any | any, cache?: ?string, credentials?: ?string, headers?: ?any, integrity?: ?string, method?: ?string, mode?: ?string, redirect?: ?string, referrer?: ?string}) => any}>;
 declare export function destroyAll<Class0>(): void;
-declare export function serve(_?: $Exact<{allow: Array<$Exact<{}>>}>): {cancel: () => void};
+declare export function serve(_?: $Exact<{allow: Array<{domain?: ?string | any | Array<string>, headers?: ?string | any | Array<string>, method?: ?string | any | Array<string>, options?: ?string | any | Array<string>, origin?: ?string | any | Array<string>, path?: ?string | any | Array<string>, query?: ?string | any | Array<string>, responseHeaders?: ?string | any | Array<string>}>}>): {cancel: () => void};
