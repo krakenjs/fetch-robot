@@ -71,6 +71,7 @@ function getWebpackConfig({ filename, modulename, minify = false, options = {}, 
                 mangle: minify,
                 sourceMap: true
             }),
+            new webpack.optimize.ModuleConcatenationPlugin(),
             new CircularDependencyPlugin({
                 exclude: /node_modules/,
                 failOnError: true
