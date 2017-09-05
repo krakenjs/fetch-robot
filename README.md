@@ -28,7 +28,7 @@ In the parent window `rorschach.com`:
 
     let proxy = fetchRobot.connect({ url: 'https://www.niteowl.com/fetch-robot-proxy' });
 
-    // Use `proxy.fetch` as if it were
+    // Use `proxy.fetch` in the same way as `fetch`
 
     proxy.fetch('https://www.niteowl.com/api/foo', { method: 'POST' })
         .then(response => response.text())
@@ -39,10 +39,12 @@ In the parent window `rorschach.com`:
 In the child window `niteowl.com/fetch-robot-proxy`:
 
 ```javascript
+<!-- Add a fetch polyfill for older browsers -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
 
 <script>
-    // Enable requests to be passed through the current frame
+    // Enable requests to be passed through the current frame using fetchRobot
 
     fetchRobot.serve({
 
