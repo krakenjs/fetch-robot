@@ -12,6 +12,47 @@ describe('happy cases', () => {
     it('should make a request with a text response, and return the correct response', () => {
 
         let url = '/api/foo';
+        let text = 'ok';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = (fetchUrl) => {
+                if (fetchUrl !== url) {
+                    throw new Error(`Expected ${ fetchUrl } to be ${ url }`);
+                }
+
+                return ZalgoPromise.resolve(new Response(text));
+            };
+
+            return serve({
+                allow: []
+            });
+
+        }).then(() => {
+            return proxy.fetch(url);
+
+        }).then(response => {
+
+            if (!(response instanceof window.Response)) {
+                throw new TypeError(`Expected response to be instance of Response`);
+            }
+
+            return response.text();
+
+        }).then(responseText => {
+
+            if (responseText !== text) {
+                throw new Error(`Expected ${ responseText } to be ${ text }`);
+            }
+        });
+    });
+
+    it('should make a request with a method and text response, and return the correct response', () => {
+
+        let url = '/api/foo';
         let method = 'get';
         let text = 'ok';
 
@@ -372,6 +413,54 @@ describe('happy cases', () => {
 
         }).then(() => {
             return proxy.fetch(url, requestOptions);
+
+        }).then(response => {
+
+            if (!(response instanceof window.Response)) {
+                throw new TypeError(`Expected response to be instance of Response`);
+            }
+
+            return response.text();
+
+        }).then(responseText => {
+
+            if (responseText !== text) {
+                throw new Error(`Expected ${ responseText } to be ${ text }`);
+            }
+        });
+    });
+
+    it('should not pass options which are not specified', () => {
+
+        let url = '/api/foo';
+        let text = 'ok';
+        let requestKeys = [ 'method', 'body', 'mode', 'credentials', 'cache', 'redirect', 'referrer', 'integrity' ];
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = (fetchUrl, fetchOptions) => {
+                if (fetchUrl !== url) {
+                    throw new Error(`Expected ${ fetchUrl } to be ${ url }`);
+                }
+
+                for (let key of requestKeys) {
+                    if (fetchOptions.hasOwnProperty(key)) {
+                        throw new Error(`Expected request to not have option: ${ key }`);
+                    }
+                }
+
+                return ZalgoPromise.resolve(new Response(text));
+            };
+
+            return serve({
+                allow: []
+            });
+
+        }).then(() => {
+            return proxy.fetch(url);
 
         }).then(response => {
 

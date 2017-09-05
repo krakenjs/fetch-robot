@@ -1,19 +1,17 @@
 /* @flow */
 
-import { serializeHeaders, deserializeHeaders } from '../serdes';
+import { serializeHeaders, deserializeHeaders, REQUEST_OPTIONS } from '../serdes';
+import { extractKeys } from '../util';
 
 export function deserializeRequest(options : SerializedRequestType) : FetchOptionsType {
-    return {
-        method:      options.method,
-        body:        options.body,
-        mode:        options.mode,
-        credentials: options.credentials,
-        cache:       options.cache,
-        redirect:    options.redirect,
-        referrer:    options.referrer,
-        integrity:   options.integrity,
-        headers:     deserializeHeaders(options.headers)
-    };
+
+    let result = extractKeys(options, REQUEST_OPTIONS);
+
+    if (options && options.headers) {
+        result.headers = deserializeHeaders(options.headers);
+    }
+
+    return result;
 }
 
 export function serializeResponse(response : Response) : SerializedResponseType {

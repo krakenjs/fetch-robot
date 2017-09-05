@@ -8,7 +8,7 @@ type ConnectOptions = {|
 |};
 
 type ConnectResponse = {|
-    fetch : (url : string, options : FetchOptionsType) => ZalgoPromise<Response>
+    fetch : (url : string, options : ?FetchOptionsType) => ZalgoPromise<Response>
 |};
 
 export function connect({ url } : ConnectOptions) : ConnectResponse {

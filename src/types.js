@@ -13,7 +13,7 @@ export type CrossDomainWindowType = {|
     close : () => void
 |};
 
-export type FetchOptionsType = {|
+export type FetchOptionsType = {
     method? : ?string,
     headers? : ?Headers,
     body? : ?(string | Blob | BufferSource | FormData | URLSearchParams | USVString),
@@ -23,9 +23,9 @@ export type FetchOptionsType = {|
     redirect? : ?string,
     referrer? : ?string,
     integrity? : ?string
-|};
+};
 
-export type SerializedRequestType = {|
+export type SerializedRequestType = {
     method? : ?string,
     headers? : ?{ [string] : string },
     body? : ?string,
@@ -35,7 +35,7 @@ export type SerializedRequestType = {|
     redirect? : ?string,
     referrer? : ?string,
     integrity? : ?string
-|};
+};
 
 export type SerializedResponseType = {|
     status : number,

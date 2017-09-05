@@ -2,20 +2,18 @@
 
 import { type ZalgoPromise } from 'zalgo-promise/src';
 
-import { serializeHeaders, deserializeHeaders } from '../serdes';
+import { serializeHeaders, deserializeHeaders, REQUEST_OPTIONS } from '../serdes';
+import { extractKeys } from '../util';
 
-export function serializeRequest(options : FetchOptionsType) : SerializedRequestType {
-    return {
-        method:      options.method,
-        body:        options.body,
-        mode:        options.mode,
-        credentials: options.credentials,
-        cache:       options.cache,
-        redirect:    options.redirect,
-        referrer:    options.referrer,
-        integrity:   options.integrity,
-        headers:     serializeHeaders(options.headers)
-    };
+export function serializeRequest(options : ?FetchOptionsType) : SerializedRequestType {
+
+    let result = extractKeys(options, REQUEST_OPTIONS);
+
+    if (options && options.headers) {
+        result.headers = serializeHeaders(options.headers);
+    }
+
+    return result;
 }
 
 export function deserializeResponse(response : SerializedResponseType) : ZalgoPromise<Response> {
