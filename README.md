@@ -92,13 +92,19 @@ Each option in a rule can be one of:
 ### Available options
 
 - `origin` - The domain(s) from which the request was sent
-  - default: `*`
+  - default: `'*'`
 - `domain` - The domain(s) to which the request can be sent
   - default: domain where `fetchRobot.serve()` was called
 - `path` - The path(s) to which requests can be sent
+  - default: `[]`
 - `query` - The query param(s) which can be sent with the request
+  - default: `'*'`
+- `method` - The method(s) with which requests can be sent
+  - default: `['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch']`
 - `headers` - The headers(s) which can be sent with the request
+  - default: `['accept', 'accept-language', 'content-language', 'content-type']`
 - `responseHeaders` - The header(s) which can be sent with the response
+  - default: `['cache-control', 'content-language', 'content-type', 'expires', 'last-modified', 'pragma']`
 
 Quick Start
 -----------
