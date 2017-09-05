@@ -1316,10 +1316,10 @@
             function deserializeHeaders(headers) {
                 return new Headers(headers || {});
             }
-            function extractKeys(obj, keys) {
+            function extractKeys(obj, predicate) {
                 var result = {};
                 if (!obj) return result;
-                for (var _iterator = keys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+                for (var _iterator = Object.keys(obj), _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
                     var _ref;
                     if (_isArray) {
                         if (_i >= _iterator.length) break;
@@ -1330,15 +1330,30 @@
                         _ref = _i.value;
                     }
                     var key = _ref;
-                    obj.hasOwnProperty(key) && (result[key] = obj[key]);
+                    predicate(key) && (result[key] = obj[key]);
                 }
                 return result;
+            }
+            function extractKeysByArray(obj, keys) {
+                return extractKeys(obj, function(key) {
+                    return -1 !== keys.indexOf(key);
+                });
+            }
+            function extractKeysByRegex(obj, regex) {
+                return extractKeys(obj, function(key) {
+                    return regex.test(key);
+                });
+            }
+            function extractKeysByString(obj, str) {
+                return extractKeys(obj, function(key) {
+                    return key === str;
+                });
             }
             function src_util_isRegex(item) {
                 return "[object RegExp]" === Object.prototype.toString.call(item);
             }
             function serializeRequest(options) {
-                var result = extractKeys(options, STANDARD_REQUEST_OPTIONS);
+                var result = extractKeysByArray(options, STANDARD_REQUEST_OPTIONS);
                 result.method && (result.method = result.method.toLowerCase());
                 options && options.headers && (result.headers = serializeHeaders(options.headers));
                 return result;
@@ -1403,6 +1418,13 @@
                     return "string" == typeof option;
                 }))) throw new Error("Invalid matcher for " + name + ": " + Object.prototype.toString.call(matcher));
             }
+            function extractMatches(obj, matcher) {
+                if (matcher === WILDCARD) return obj;
+                if (Array.isArray(matcher)) return extractKeysByArray(obj, matcher);
+                if (src_util_isRegex(matcher)) return extractKeysByRegex(obj, matcher);
+                if ("string" == typeof matcher) return extractKeysByString(obj, matcher);
+                throw new Error("Invalid matcher");
+            }
             function validateRules(rules) {
                 for (var _iterator = rules, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
                     var _ref;
@@ -1430,28 +1452,22 @@
                     }
                 }
             }
+            function stringifyValue(value) {
+                return Array.isArray(value) ? 0 === value.length ? "[]" : "[ " + value.map(function(item) {
+                    return "'" + item + "'";
+                }).join(", ") + " ]" : "'" + value + "'";
+            }
             function stringifyMatcher(matcher) {
-                return Array.isArray(matcher) ? 0 === matcher.length ? "[]" : "[ " + matcher.join(", ") + " ]" : matcher.toString();
+                return "string" == typeof matcher ? "[ '" + matcher + "' ]" : Array.isArray(matcher) ? 0 === matcher.length ? "[]" : "[ " + matcher.map(function(item) {
+                    return "'" + item + "'";
+                }).join(", ") + " ]" : src_util_isRegex(matcher) ? "/" + matcher.source + "/" : matcher.toString();
             }
             function match(value, matcher) {
-                return "string" == typeof matcher ? matcher === WILDCARD || value === matcher : src_util_isRegex(matcher) ? matcher.test(value) : !!Array.isArray(matcher) && matcher.some(function(option) {
+                return Array.isArray(value) ? value.every(function(item) {
+                    return match(item, matcher);
+                }) : "string" == typeof matcher ? matcher === WILDCARD || value === matcher : src_util_isRegex(matcher) ? matcher.test(value) : !!Array.isArray(matcher) && matcher.some(function(option) {
                     return option === value;
                 });
-            }
-            function validateMatch(name, value, matcher) {
-                if (Array.isArray(value)) for (var _iterator3 = value, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator](); ;) {
-                    var _ref3;
-                    if (_isArray3) {
-                        if (_i3 >= _iterator3.length) break;
-                        _ref3 = _iterator3[_i3++];
-                    } else {
-                        _i3 = _iterator3.next();
-                        if (_i3.done) break;
-                        _ref3 = _i3.value;
-                    }
-                    var item = _ref3;
-                    validateMatch(name, item, matcher);
-                } else if (!match(value, matcher)) throw new Error("Invalid " + name + ": " + value + " - allowed: " + stringifyMatcher(matcher));
             }
             function parseUrl(url) {
                 var parsedUrl = new url_parse_default.a(url, window.mockDomain || window.location, !0);
@@ -1461,18 +1477,18 @@
                     query: parsedUrl.query
                 };
             }
-            function checkRequestRules(origin, url, options, allow) {
-                for (var _parseUrl = parseUrl(url), domain = _parseUrl.domain, path = _parseUrl.path, query = _parseUrl.query, _iterator4 = allow, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator](); ;) {
-                    var _ref4;
-                    if (_isArray4) {
-                        if (_i4 >= _iterator4.length) break;
-                        _ref4 = _iterator4[_i4++];
+            function getMatchingRequestRule(origin, url, options, allow) {
+                for (var _parseUrl = parseUrl(url), domain = _parseUrl.domain, path = _parseUrl.path, query = _parseUrl.query, failedRules = [], _iterator3 = allow, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator](); ;) {
+                    var _ref3;
+                    if (_isArray3) {
+                        if (_i3 >= _iterator3.length) break;
+                        _ref3 = _iterator3[_i3++];
                     } else {
-                        _i4 = _iterator4.next();
-                        if (_i4.done) break;
-                        _ref4 = _i4.value;
+                        _i3 = _iterator3.next();
+                        if (_i3.done) break;
+                        _ref3 = _i3.value;
                     }
-                    for (var rule = _ref4, items = [ {
+                    for (var rule = _ref3, failedMatchers = [], items = [ {
                         name: "origin",
                         value: origin
                     }, {
@@ -1493,52 +1509,39 @@
                     }, {
                         name: "options",
                         value: Object.keys(options)
-                    } ], _iterator5 = items, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator](); ;) {
+                    } ], _iterator4 = items, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator](); ;) {
                         var _ref6;
-                        if (_isArray5) {
-                            if (_i5 >= _iterator5.length) break;
-                            _ref6 = _iterator5[_i5++];
+                        if (_isArray4) {
+                            if (_i4 >= _iterator4.length) break;
+                            _ref6 = _iterator4[_i4++];
                         } else {
-                            _i5 = _iterator5.next();
-                            if (_i5.done) break;
-                            _ref6 = _i5.value;
+                            _i4 = _iterator4.next();
+                            if (_i4.done) break;
+                            _ref6 = _i4.value;
                         }
-                        var _ref7 = _ref6, _name = _ref7.name;
-                        validateMatch(_name, _ref7.value, rule.hasOwnProperty(_name) ? rule[_name] : DEFAULT_RULES[_name]);
+                        var _ref7 = _ref6, _name = _ref7.name, _value = _ref7.value, matcher = rule.hasOwnProperty(_name) ? rule[_name] : DEFAULT_RULES[_name];
+                        match(_value, matcher) || failedMatchers.push({
+                            name: _name,
+                            value: _value,
+                            matcher: matcher
+                        });
                     }
+                    if (!failedMatchers.length) return rule;
+                    failedRules.push(failedMatchers);
                 }
+                var errMessage = failedRules.map(function(failedMatchers) {
+                    return failedMatchers.map(function(_ref4) {
+                        var name = _ref4.name, value = _ref4.value, matcher = _ref4.matcher;
+                        return "- " + name + " :: got " + stringifyValue(value) + " - expected " + stringifyMatcher(matcher);
+                    }).join("\n");
+                }).join("\n\n");
+                throw new Error("Failed to find matching rule for request:\n\n" + errMessage + "\n");
             }
-            function checkResponseRules(response, allow) {
-                for (var _iterator6 = allow, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator](); ;) {
-                    var _ref8;
-                    if (_isArray6) {
-                        if (_i6 >= _iterator6.length) break;
-                        _ref8 = _iterator6[_i6++];
-                    } else {
-                        _i6 = _iterator6.next();
-                        if (_i6.done) break;
-                        _ref8 = _i6.value;
-                    }
-                    for (var rule = _ref8, items = [ {
-                        name: "responseHeaders",
-                        value: Object.keys(response.headers)
-                    } ], _iterator7 = items, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator](); ;) {
-                        var _ref10;
-                        if (_isArray7) {
-                            if (_i7 >= _iterator7.length) break;
-                            _ref10 = _iterator7[_i7++];
-                        } else {
-                            _i7 = _iterator7.next();
-                            if (_i7.done) break;
-                            _ref10 = _i7.value;
-                        }
-                        var _ref11 = _ref10, _name2 = _ref11.name;
-                        validateMatch(_name2, _ref11.value, rule.hasOwnProperty(_name2) ? rule[_name2] : DEFAULT_RULES[_name2]);
-                    }
-                }
+            function filterResponseHeaders(headers, rule) {
+                return extractMatches(headers, rule.responseHeaders || DEFAULT_RULES.responseHeaders || []);
             }
             function deserializeRequest(options) {
-                var result = extractKeys(options, STANDARD_REQUEST_OPTIONS);
+                var result = extractKeysByArray(options, STANDARD_REQUEST_OPTIONS);
                 options && options.headers && (result.headers = deserializeHeaders(options.headers));
                 return result;
             }
@@ -1555,11 +1558,10 @@
                 0 === allow.length && (allow = [ DEFAULT_RULES ]);
                 validateRules(allow);
                 var listener = _on(FETCH_PROXY, {}, function(_ref2) {
-                    var origin = _ref2.origin, _ref2$data = _ref2.data, url = _ref2$data.url, options = _ref2$data.options;
-                    checkRequestRules(origin, url, options, allow);
+                    var origin = _ref2.origin, _ref2$data = _ref2.data, url = _ref2$data.url, options = _ref2$data.options, rule = getMatchingRequestRule(origin, url, options, allow);
                     return window.fetch(url, deserializeRequest(options)).then(function(response) {
                         var serializedResponse = serializeResponse(response);
-                        checkResponseRules(serializedResponse, allow);
+                        serializedResponse.headers = filterResponseHeaders(serializedResponse.headers, rule);
                         return serializedResponse;
                     });
                 });

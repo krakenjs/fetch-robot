@@ -1,10 +1,10 @@
 import { STANDARD_REQUEST_OPTIONS } from '../constants';
 import { serializeHeaders, deserializeHeaders } from '../serdes';
-import { extractKeys } from '../util';
+import { extractKeysByArray } from '../util';
 
 export function deserializeRequest(options) {
 
-    var result = extractKeys(options, STANDARD_REQUEST_OPTIONS);
+    var result = extractKeysByArray(options, STANDARD_REQUEST_OPTIONS);
 
     if (options && options.headers) {
         result.headers = deserializeHeaders(options.headers);

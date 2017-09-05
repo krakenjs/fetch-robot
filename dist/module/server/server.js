@@ -2,7 +2,7 @@ import { on } from 'post-robot/src';
 
 import { FETCH_PROXY } from '../constants';
 
-import { validateRules, checkRequestRules, checkResponseRules, DEFAULT_RULES } from './rules';
+import { validateRules, getMatchingRequestRule, filterResponseHeaders, DEFAULT_RULES } from './rules';
 import { deserializeRequest, serializeResponse } from './serdes';
 
 var listeners = [];
@@ -25,11 +25,11 @@ export function serve() {
             options = _ref2$data.options;
 
 
-        checkRequestRules(origin, url, options, allow);
+        var rule = getMatchingRequestRule(origin, url, options, allow);
 
         return window.fetch(url, deserializeRequest(options)).then(function (response) {
             var serializedResponse = serializeResponse(response);
-            checkResponseRules(serializedResponse, allow);
+            serializedResponse.headers = filterResponseHeaders(serializedResponse.headers, rule);
             return serializedResponse;
         });
     });

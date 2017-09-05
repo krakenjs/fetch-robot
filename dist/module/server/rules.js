@@ -2,7 +2,7 @@ import { getDomain } from 'cross-domain-utils/src';
 import URL from 'url-parse';
 
 import { WILDCARD, STANDARD_REQUEST_METHODS, STANDARD_REQUEST_HEADERS, STANDARD_RESPONSE_HEADERS, STANDARD_REQUEST_OPTIONS } from '../constants';
-import { isRegex } from '../util';
+import { isRegex, extractKeysByArray, extractKeysByRegex, extractKeysByString } from '../util';
 
 export var DEFAULT_RULES = {
     origin: WILDCARD,
@@ -30,6 +30,24 @@ function validateMatcher(name, matcher) {
     }
 
     throw new Error('Invalid matcher for ' + name + ': ' + Object.prototype.toString.call(matcher));
+}
+
+function extractMatches(obj, matcher) {
+
+    if (matcher === WILDCARD) {
+        return obj;
+    }
+
+    if (Array.isArray(matcher)) {
+        return extractKeysByArray(obj, matcher);
+    } else if (isRegex(matcher)) {
+        // $FlowFixMe
+        return extractKeysByRegex(obj, matcher);
+    } else if (typeof matcher === 'string') {
+        return extractKeysByString(obj, matcher);
+    }
+
+    throw new Error('Invalid matcher');
 }
 
 export function validateRules(rules) {
@@ -69,18 +87,50 @@ export function validateRules(rules) {
     }
 }
 
+function stringifyValue(value) {
+
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            return '[]';
+        }
+        return '[ ' + value.map(function (item) {
+            return '\'' + item + '\'';
+        }).join(', ') + ' ]';
+    }
+
+    return '\'' + value + '\'';
+}
+
 function stringifyMatcher(matcher) {
+
+    if (typeof matcher === 'string') {
+        return '[ \'' + matcher + '\' ]';
+    }
+
     if (Array.isArray(matcher)) {
         if (matcher.length === 0) {
             return '[]';
         }
-        return '[ ' + matcher.join(', ') + ' ]';
+        return '[ ' + matcher.map(function (item) {
+            return '\'' + item + '\'';
+        }).join(', ') + ' ]';
+    }
+
+    if (isRegex(matcher)) {
+        return '/' + matcher.source + '/';
     }
 
     return matcher.toString();
 }
 
 function match(value, matcher) {
+
+    if (Array.isArray(value)) {
+        return value.every(function (item) {
+            return match(item, matcher);
+        });
+    }
+
     if (typeof matcher === 'string') {
         return matcher === WILDCARD || value === matcher;
     } else if (isRegex(matcher)) {
@@ -94,32 +144,6 @@ function match(value, matcher) {
     return false;
 }
 
-function validateMatch(name, value, matcher) {
-
-    if (Array.isArray(value)) {
-        for (var _iterator3 = value, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-            var _ref3;
-
-            if (_isArray3) {
-                if (_i3 >= _iterator3.length) break;
-                _ref3 = _iterator3[_i3++];
-            } else {
-                _i3 = _iterator3.next();
-                if (_i3.done) break;
-                _ref3 = _i3.value;
-            }
-
-            var item = _ref3;
-
-            validateMatch(name, item, matcher);
-        }
-    } else {
-        if (!match(value, matcher)) {
-            throw new Error('Invalid ' + name + ': ' + value + ' - allowed: ' + stringifyMatcher(matcher));
-        }
-    }
-}
-
 function parseUrl(url) {
 
     var parsedUrl = new URL(url, window.mockDomain || window.location, true);
@@ -131,26 +155,30 @@ function parseUrl(url) {
     return { domain: domain, path: path, query: query };
 }
 
-export function checkRequestRules(origin, url, options, allow) {
+export function getMatchingRequestRule(origin, url, options, allow) {
     var _parseUrl = parseUrl(url),
         domain = _parseUrl.domain,
         path = _parseUrl.path,
         query = _parseUrl.query;
 
-    for (var _iterator4 = allow, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-        var _ref4;
+    var failedRules = [];
 
-        if (_isArray4) {
-            if (_i4 >= _iterator4.length) break;
-            _ref4 = _iterator4[_i4++];
+    for (var _iterator3 = allow, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+        var _ref3;
+
+        if (_isArray3) {
+            if (_i3 >= _iterator3.length) break;
+            _ref3 = _iterator3[_i3++];
         } else {
-            _i4 = _iterator4.next();
-            if (_i4.done) break;
-            _ref4 = _i4.value;
+            _i3 = _iterator3.next();
+            if (_i3.done) break;
+            _ref3 = _i3.value;
         }
 
-        var rule = _ref4;
+        var rule = _ref3;
 
+
+        var failedMatchers = [];
 
         var items = [{
             name: 'origin',
@@ -175,65 +203,50 @@ export function checkRequestRules(origin, url, options, allow) {
             value: Object.keys(options)
         }];
 
-        for (var _iterator5 = items, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+        for (var _iterator4 = items, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
             var _ref6;
 
-            if (_isArray5) {
-                if (_i5 >= _iterator5.length) break;
-                _ref6 = _iterator5[_i5++];
+            if (_isArray4) {
+                if (_i4 >= _iterator4.length) break;
+                _ref6 = _iterator4[_i4++];
             } else {
-                _i5 = _iterator5.next();
-                if (_i5.done) break;
-                _ref6 = _i5.value;
+                _i4 = _iterator4.next();
+                if (_i4.done) break;
+                _ref6 = _i4.value;
             }
 
             var _ref7 = _ref6;
             var _name = _ref7.name,
                 _value = _ref7.value;
 
-            validateMatch(_name, _value, rule.hasOwnProperty(_name) ? rule[_name] : DEFAULT_RULES[_name]);
+            var matcher = rule.hasOwnProperty(_name) ? rule[_name] : DEFAULT_RULES[_name];
+
+            if (!match(_value, matcher)) {
+                failedMatchers.push({ name: _name, value: _value, matcher: matcher });
+            }
+        }
+
+        if (failedMatchers.length) {
+            failedRules.push(failedMatchers);
+        } else {
+            return rule;
         }
     }
+
+    var errMessage = failedRules.map(function (failedMatchers) {
+        return failedMatchers.map(function (_ref4) {
+            var name = _ref4.name,
+                value = _ref4.value,
+                matcher = _ref4.matcher;
+
+            return '- ' + name + ' :: got ' + stringifyValue(value) + ' - expected ' + stringifyMatcher(matcher);
+        }).join('\n');
+    }).join('\n\n');
+
+    throw new Error('Failed to find matching rule for request:\n\n' + errMessage + '\n');
 }
 
-export function checkResponseRules(response, allow) {
-    for (var _iterator6 = allow, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
-        var _ref8;
-
-        if (_isArray6) {
-            if (_i6 >= _iterator6.length) break;
-            _ref8 = _iterator6[_i6++];
-        } else {
-            _i6 = _iterator6.next();
-            if (_i6.done) break;
-            _ref8 = _i6.value;
-        }
-
-        var rule = _ref8;
-
-
-        var items = [{
-            name: 'responseHeaders',
-            value: Object.keys(response.headers)
-        }];
-
-        for (var _iterator7 = items, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
-            var _ref10;
-
-            if (_isArray7) {
-                if (_i7 >= _iterator7.length) break;
-                _ref10 = _iterator7[_i7++];
-            } else {
-                _i7 = _iterator7.next();
-                if (_i7.done) break;
-                _ref10 = _i7.value;
-            }
-
-            var _ref11 = _ref10;
-            var _name2 = _ref11.name,
-                _value2 = _ref11.value;
-
-            validateMatch(_name2, _value2, rule.hasOwnProperty(_name2) ? rule[_name2] : DEFAULT_RULES[_name2]);
-        }
-    }
+export function filterResponseHeaders(headers, rule) {
+    var responseHeaders = rule.responseHeaders || DEFAULT_RULES.responseHeaders || [];
+    return extractMatches(headers, responseHeaders);
 }
