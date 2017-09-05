@@ -8,6 +8,10 @@ export function serializeRequest(options) {
 
     var result = extractKeys(options, STANDARD_REQUEST_OPTIONS);
 
+    if (result.method) {
+        result.method = result.method.toLowerCase();
+    }
+
     if (options && options.headers) {
         result.headers = serializeHeaders(options.headers);
     }
