@@ -93,7 +93,7 @@ Each option in a rule can be one of:
 
 ### Available options
 
-- `origin` - The domain(s) from which the request was sent
+- `origin` - The domain(s) from which the request can be sent
   - default: `'*'`
 - `domain` - The domain(s) to which the request can be sent
   - default: domain where `fetchRobot.serve()` was called
