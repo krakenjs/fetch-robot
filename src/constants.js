@@ -43,3 +43,15 @@ export const STANDARD_REQUEST_OPTIONS = [
     'integrity',
     'headers'
 ];
+
+export const REQUEST_CREDENTIALS = {
+    INCLUDE:     'include',
+    SAME_ORIGIN: 'same-origin',
+    OMIT:        'omit'
+};
+
+export const STANDARD_REQUEST_CREDENTIALS = [
+    REQUEST_CREDENTIALS.INCLUDE,
+    REQUEST_CREDENTIALS.SAME_ORIGIN,
+    REQUEST_CREDENTIALS.OMIT
+];

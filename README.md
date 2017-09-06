@@ -71,7 +71,9 @@ In the child window `niteowl.com/fetch-robot-proxy`:
 
                 headers: [
                     'x-custom-header'
-                ]
+                ],
+
+                credentials: 'include'
             }
         ]
     });
@@ -103,12 +105,14 @@ Each option in a rule can be one of:
   - default: `[]`
 - `query` - The query param(s) which can be sent with the request
   - default: `'*'`
+- `credentials` - The credential level which can be sent with requests
+  - default: `[ 'omit' ]`
 - `method` - The method(s) with which requests can be sent
-  - default: `['get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch']`
+  - default: `[ 'get', 'head', 'post', 'put', 'delete', 'connect', 'options', 'trace', 'patch' ]`
 - `headers` - The headers(s) which can be sent with the request
-  - default: `['accept', 'accept-language', 'content-language', 'content-type']`
+  - default: `[ 'accept', 'accept-language', 'content-language', 'content-type' ]`
 - `responseHeaders` - The header(s) which can be sent with the response
-  - default: `['cache-control', 'content-language', 'content-type', 'expires', 'last-modified', 'pragma']`
+  - default: `[ 'cache-control', 'content-language', 'content-type', 'expires', 'last-modified', 'pragma' ]`
 
 Quick Start
 -----------

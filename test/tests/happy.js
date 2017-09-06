@@ -504,7 +504,7 @@ describe('happy cases', () => {
             method:      'delete',
             body:        'foobarbaz',
             mode:        'cors',
-            credentials: 'foo:bar',
+            credentials: 'omit',
             cache:       'none',
             redirect:    'default',
             referrer:    'http://www.zombo.com',

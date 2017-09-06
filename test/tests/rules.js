@@ -918,4 +918,118 @@ describe('rule cases', () => {
             return proxy.fetch(path);
         });
     });
+
+    it('should make a request with default allowed credentials', () => {
+
+        let path = '/api/foo';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response());
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return proxy.fetch(path, {
+                credentials: 'omit'
+            });
+        });
+    });
+
+    it('should make a request with default allowed credentials disallowed and error out', () => {
+
+        let path = '/api/foo';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response());
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path,
+                        credentials: [ 'include' ]
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return expectError(proxy.fetch(path, {
+                credentials: 'omit'
+            }));
+        });
+    });
+
+    it('should make a request with explicitly allowed credentials', () => {
+
+        let path = '/api/foo';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response());
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path,
+                        credentials: [ 'allow' ]
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return expectError(proxy.fetch(path, {
+                credentials: 'include'
+            }));
+        });
+    });
+
+    it('should make a request with default disallowed credentials and error out', () => {
+
+        let path = '/api/foo';
+
+        let proxy = connect({ url: FRAME_URL });
+
+        return once('proxyFrameLoad').then(({ source, data: { serve } }) => {
+
+            // $FlowFixMe
+            source.fetch = () => {
+                return ZalgoPromise.resolve(new Response());
+            };
+
+            return serve({
+                allow: [
+                    {
+                        path
+                    }
+                ]
+            });
+
+        }).then(() => {
+            return expectError(proxy.fetch(path, {
+                credentials: 'include'
+            }));
+        });
+    });
 });
