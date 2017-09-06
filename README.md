@@ -3,6 +3,8 @@ Fetch Robot
 
 Run `fetch()` through an iframe proxy to avoid dealing with CORS.
 
+https://medium.com/@bluepnume/reinventing-cross-origin-requests-without-cors-b9c4cb645376
+
 Uses [post-robot](https://github.com/krakenjs/post-robot) for frame-to-frame communication.
 
 ### Why?
