@@ -1,7 +1,7 @@
 import { getDomain } from 'cross-domain-utils/src';
 import URL from 'url-parse';
 
-import { WILDCARD, STANDARD_REQUEST_METHODS, STANDARD_REQUEST_HEADERS, STANDARD_RESPONSE_HEADERS, STANDARD_REQUEST_OPTIONS } from '../constants';
+import { WILDCARD, STANDARD_REQUEST_METHODS, STANDARD_REQUEST_HEADERS, STANDARD_RESPONSE_HEADERS, STANDARD_REQUEST_OPTIONS, REQUEST_CREDENTIALS } from '../constants';
 import { isRegex, extractKeysByArray, extractKeysByRegex, extractKeysByString } from '../util';
 
 export var DEFAULT_RULES = {
@@ -11,6 +11,7 @@ export var DEFAULT_RULES = {
     query: WILDCARD,
     method: STANDARD_REQUEST_METHODS,
     headers: STANDARD_REQUEST_HEADERS,
+    credentials: REQUEST_CREDENTIALS.OMIT,
     options: STANDARD_REQUEST_OPTIONS,
     responseHeaders: STANDARD_RESPONSE_HEADERS
 };
@@ -198,6 +199,9 @@ export function getMatchingRequestRule(origin, url, options, allow) {
         }, {
             name: 'headers',
             value: Object.keys(options.headers || {})
+        }, {
+            name: 'credentials',
+            value: options.credentials || REQUEST_CREDENTIALS.OMIT
         }, {
             name: 'options',
             value: Object.keys(options)

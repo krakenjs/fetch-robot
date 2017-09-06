@@ -1507,6 +1507,9 @@
                         name: "headers",
                         value: Object.keys(options.headers || {})
                     }, {
+                        name: "credentials",
+                        value: options.credentials || REQUEST_CREDENTIALS.OMIT
+                    }, {
                         name: "options",
                         value: Object.keys(options)
                     } ], _iterator4 = items, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator](); ;) {
@@ -2338,13 +2341,19 @@
             global.requestPromises = global.requestPromises || new weakmap_CrossDomainSafeWeakMap();
             var public_parent = getAncestor(), bridge = void 0;
             init();
-            var FETCH_PROXY = "fetch-robot-proxy", WILDCARD = "*", STANDARD_REQUEST_METHODS = [ "get", "head", "post", "put", "delete", "connect", "options", "trace", "patch" ], STANDARD_REQUEST_HEADERS = [ "accept", "accept-language", "content-language", "content-type" ], STANDARD_RESPONSE_HEADERS = [ "cache-control", "content-language", "content-type", "expires", "last-modified", "pragma" ], STANDARD_REQUEST_OPTIONS = [ "method", "body", "mode", "credentials", "cache", "redirect", "referrer", "integrity", "headers" ], frame_frames = {}, url_parse = __webpack_require__("./node_modules/url-parse/index.js"), url_parse_default = __webpack_require__.n(url_parse), DEFAULT_RULES = {
+            var FETCH_PROXY = "fetch-robot-proxy", WILDCARD = "*", STANDARD_REQUEST_METHODS = [ "get", "head", "post", "put", "delete", "connect", "options", "trace", "patch" ], STANDARD_REQUEST_HEADERS = [ "accept", "accept-language", "content-language", "content-type" ], STANDARD_RESPONSE_HEADERS = [ "cache-control", "content-language", "content-type", "expires", "last-modified", "pragma" ], STANDARD_REQUEST_OPTIONS = [ "method", "body", "mode", "credentials", "cache", "redirect", "referrer", "integrity", "headers" ], REQUEST_CREDENTIALS = {
+                INCLUDE: "include",
+                SAME_ORIGIN: "same-origin",
+                OMIT: "omit"
+            }, frame_frames = (REQUEST_CREDENTIALS.INCLUDE, REQUEST_CREDENTIALS.SAME_ORIGIN, 
+            REQUEST_CREDENTIALS.OMIT, {}), url_parse = __webpack_require__("./node_modules/url-parse/index.js"), url_parse_default = __webpack_require__.n(url_parse), DEFAULT_RULES = {
                 origin: WILDCARD,
                 domain: src_getDomain(),
                 path: [],
                 query: WILDCARD,
                 method: STANDARD_REQUEST_METHODS,
                 headers: STANDARD_REQUEST_HEADERS,
+                credentials: REQUEST_CREDENTIALS.OMIT,
                 options: STANDARD_REQUEST_OPTIONS,
                 responseHeaders: STANDARD_RESPONSE_HEADERS
             }, listeners = [];
